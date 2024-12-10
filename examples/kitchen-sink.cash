@@ -1,0 +1,110 @@
+// TODO: Make sure the entire pragma value is highlighted the same + allow for spaces and multiple constraints
+pragma cashscript >= 0.7.0 < 0.200.0;
+
+/*  --- State Immutable NFT ---
+    // TOOD: Make sure that this 'identifier' doesn't get included in autocompletion elsewhere in the code
+    byte identifier == 0x02
+*/
+
+// TODO: Make sure that hovering to see function and contract signature still works with multiline params
+contract KitchenSink(pubkey pk) {
+  function spend(
+    sig s,
+    datasig ds
+  ) {
+    // Assignments / definitions
+    int a = 1;
+    bool b = true;
+    string c = "Hello";
+    bytes d = 0xabcd;
+    // TODO: autocomplete 'constant' keyword (and maybe other modifiers)
+    int constant e = 2;
+    // TODO: add text when hovering over 'unit' keywords
+    // TODO: add support for underscores in numbers and scientific notation
+    int f = 10 bitcoin + 100 bits + 10_000 satoshis + 1e3 finney;
+    int g = 4 weeks + 1e3 days + 12 hours + 5 minutes + 1_000e3 seconds;
+    int g2 = date("2021-02-17T01:30:00");
+    a = 2;
+
+    // Typecasting
+    int h = int(true);
+    bool i = bool(e);
+    pubkey j = pubkey(0xabcd);
+    sig k = sig(d);
+    datasig l = datasig(bytes(k));
+    bytes m = bytes(200);
+    bytes20 n = bytes20(500);
+    int o = int(n);
+    // TODO: Add autocomplete for `bytes(num, bytesize)` casting
+    bytes p = bytes(100, 4);
+
+    // Bytes/string properties / methods
+    // TODO: Add autocomplete for .split() / .length / .reverse() etc
+    bytes q, bytes r = 0xabcd.split(1);
+    bytes s = 0xabcd.split(1)[0];
+    // TODO: Add highlighting + hover information for .length
+    int t = s.length + 1;
+    string u = "Hello World".reverse();
+
+    // Global function calls
+    // TODO: Add autocomplete for sha1
+    bytes v = sha256(c) + sha1(d) + ripemd160(12) + hash160('hello') + hash256(true);
+    int w = abs(-12) + min(a, e) + max(1000, f);
+    bool x = within(w, 0, 100);
+    require(checkSig(s, pk));
+    require(checkDataSig(ds, 0xabcd, pk));
+    require(checkMultiSig([s, s], [pk, pk]));
+
+    // Global variables
+    // TODO: Make sure there is only 1 require autocomplete
+    // TODO: Make sure there's completions for tx.age + tx.time
+    // TODO: Make sure there's hover information for everything here
+    require(tx.time >= 10);
+    require(tx.age >= 10);
+    // TODO: Make sure there's completions for 'this'
+    require(this.activeInputIndex == 1);
+    require(this.activeBytecode.length == 64);
+    require(tx.version == 2);
+    require(tx.locktime < 100);
+    // TODO: Make sure there's autocompletion for indexing tx.inputs (and similar arrays)
+    require(tx.inputs[0].value == 1 bitcoin);
+    require(tx.inputs[0].lockingBytecode == new LockingBytecodeP2SH20(hash160(0xabcd)));
+    require(tx.inputs[0].nftCommitment == 0x00);
+    require(tx.inputs[0].outpointIndex == 1);
+    require(tx.inputs[0].outpointTransactionHash == 0x1234);
+    require(tx.inputs[0].sequenceNumber == 1);
+    require(tx.inputs[0].tokenAmount == 1);
+    require(tx.inputs[0].tokenCategory == 0xabcd);
+    require(tx.inputs[0].unlockingBytecode == 0xabcd);
+    require(tx.outputs[0].value == 1 bitcoin);
+    require(tx.outputs[0].tokenAmount == 1);
+    require(tx.outputs[0].tokenCategory == 0xabcd);
+    require(tx.outputs[0].lockingBytecode == 0xabcd);
+    require(tx.outputs[0].nftCommitment == 0xabcd);
+    require(new LockingBytecodeP2SH20(hash160(0xabcd)) != new LockingBytecodeP2SH32(hash160(0xabcd)));
+    require(new LockingBytecodeP2PKH(hash160(0xabcd)) != new LockingBytecodeNullData([bytes("Hello World")]));
+
+    // Expressions
+    bool y = !true && (false || true) == bool(1) && true != false;
+    int z = -5 + 6 * 12 / 4 % 6;
+    bool aa = 1 > 0 && 2 >= 2 && 5 < 6 && 12 <= 14 && 1 == 1 && 2 != 1;
+    string ab = "Hello" + " " + "World";
+    bool ac = "Hello" == "Hello" && "Hello" != "World";
+    bytes ad = 0xab + 0xcd & 0xabcd | 0x1234 ^ 0x0000;
+    bool ac = 0xabcd == 0xabcd && 0xabcd != 0x1234;
+
+    // Debug functionality
+    require(1 == 1, "1 should equal 1");
+    // TODO: Add highlighting, autocomplete, and hover information for .log
+    console.log(ac, "test");
+
+    // Control structures
+    if (aa == y) {
+      require(sha256(ad) == v);
+    } else if (ad == v) {
+      require(sha256(aa) == y);
+    } else {
+      require(false); // fail
+    }
+  }
+}
