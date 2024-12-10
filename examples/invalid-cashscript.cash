@@ -1,0 +1,55 @@
+pragma invalid >=0.7.0;
+
+contract DebugMessages() {
+  function spend(int value) {
+    // Use of statements as expressions
+    int x = require(1 == 2);
+    int y = console.log("hello world");
+
+    // Assignment of empty array (TODO: error)
+    int x = [];
+    require(x > 1);
+
+    // Incorrect usage of tx.time / tx.age
+    require(tx.time < 100);
+    require(tx.age < 100);
+
+    // Incorrect typecheck in require
+    // TODO: Make sure that there's an error when passing int into require()
+    require(max(1, 2));
+
+    // Redeclaration
+    // TODO: Make sure there's an error on reassignment
+    int a = 12;
+    int a = 24;
+
+    // Reassign a constant (TODO: error)
+    int constant const = 10;
+    const = 12;
+
+    // Invalid typecasting (TODO: error)
+    datasig ds = datasig(800);
+
+    // Invalid function args
+    bytes p = bytes(100, "string");
+
+    // Invalid splitting / indexing syntax (TODO: error)
+    bytes q, bytes r = 0xabcd.split(0x1562)[1][80];
+    bytes b = 'string'[40];
+
+    int u = 0xabcd.helloWorld;
+
+    // Invalid function calls
+    require(checkMultiSig([s, s], [pk, pk], 1));
+    require(checkMultiSig('hello world'));
+
+    // Invalid tx properties
+    require(tx.outputs[0].unlockingBytecode == 0xabcd);
+    require(tx.hello[0].unlockingBytecode == 0xabcd);
+
+    // Invalid expressions
+    int z = 5 ** 2;
+    bytes bb = 0xabcd << 1 + 0xabcd >> 1;
+    sig cc = sig(0xabcd) | sig(0xabcd)
+  }
+}
