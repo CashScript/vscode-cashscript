@@ -1,7 +1,7 @@
-import { ANTLRErrorListener, DefaultErrorStrategy, Parser, RecognitionException, Recognizer } from 'antlr4ts';
+import { ErrorListener, DefaultErrorStrategy, Parser, RecognitionException, Recognizer } from 'antlr4';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 
-export class SafeErrorListener implements ANTLRErrorListener<any> {
+export class SafeErrorListener extends ErrorListener<any> {
     static readonly INSTANCE = new SafeErrorListener();
 
 	errs:Diagnostic[] = []
@@ -11,7 +11,7 @@ export class SafeErrorListener implements ANTLRErrorListener<any> {
 	}
   
 	syntaxError<T>(
-	  recognizer: Recognizer<T, any>,
+	  recognizer: Recognizer<T>,
 	  offendingSymbol: T,
 	  line: number,
 	  charPositionInLine: number,
