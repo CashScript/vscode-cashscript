@@ -9,55 +9,45 @@ import CashscriptCompletionProvider from './CashscriptCompletionProvider';
 
 let client: LanguageClient;
 
-export function activate(context: ExtensionContext){
+export function activate(context: ExtensionContext) {
+  // Initialize Server Options
+  const serverModule = path.join(__dirname, 'server.js');
+  let serverOptions: ServerOptions = {
+    debug: {
+      module: serverModule,
+      options: {
+        execArgv: ['--nolazy', '--inspect=6069'],
+      },
+      transport: TransportKind.ipc,
+    },
+    run: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+    },
+  };
 
+  // Initialize Client Options
+  let clientOptions: LanguageClientOptions = {
+    documentSelector: [{ scheme: 'file', language: 'cashscript' }],
+    synchronize: {
+      fileEvents: workspace.createFileSystemWatcher('**/.clientrc'),
+    },
+    initializationOptions: context.extensionPath,
+  };
 
-    // Initialize Server Options
-    const serverModule = path.join(__dirname, 'server.js');
-    let serverOptions: ServerOptions = {
-        debug:{
-            module:serverModule,
-            options:{
-                execArgv: ['--nolazy', '--inspect=6069']
-            },
-            transport:TransportKind.ipc
-        },
-        run:{
-            module:serverModule,
-            transport: TransportKind.ipc
-        }
-    }
+  client = new LanguageClient('cashscript', 'Cashscript Language Server', serverOptions, clientOptions);
 
-    // Initialize Client Options
-    let clientOptions: LanguageClientOptions = {
-        documentSelector: [
-            {scheme:'file', language:'cashscript'}
-        ],
-        synchronize: {
-            fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-        },
-        initializationOptions: context.extensionPath,
-    };
+  // Subscribe to events here
+  vscode.languages.registerHoverProvider('cashscript', new CashscriptHoverProvider());
+  vscode.languages.registerSignatureHelpProvider('cashscript', new CashscriptSignatureCompleter(), '(');
+  vscode.languages.registerCompletionItemProvider('cashscript', new CashscriptCompletionProvider(), '.');
 
-
-    client = new LanguageClient(
-        'cashscript',
-        'Cashscript Language Server',
-        serverOptions,
-        clientOptions
-    )
-
-    // Subscribe to events here
-    vscode.languages.registerHoverProvider('cashscript', new CashscriptHoverProvider())
-	vscode.languages.registerSignatureHelpProvider('cashscript', new CashscriptSignatureCompleter(), '(');
-    vscode.languages.registerCompletionItemProvider('cashscript', new CashscriptCompletionProvider(), '.');
-
-    client.start();
+  client.start();
 }
 
 export function deactivate(): Thenable<void> | undefined {
-    if(!client){
-        return undefined;
-    }
-    return client.stop();
+  if (!client) {
+    return undefined;
+  }
+  return client.stop();
 }

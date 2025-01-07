@@ -1,89 +1,92 @@
 {
-    "name": "cashscript",
-    "publisher": "NathanielCherian",
-    "displayName": "cashscript",
-    "description": "Cashscript language support for Visual Studio Code",
-    "version": "0.4.0",
-    "icon": "media/icon.png",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/nathanielCherian/vscode-cashscript"
-    },
-    "bugs": {
-        "url": "https://github.com/nathanielCherian/vscode-cashscript/issues"
-    },
-    "contributors": [
-        "Nathaniel Cherian"
-    ],
-    "keywords": [
-        "cashscript",
-        "bch",
-        "blockchain",
-        "compiler",
-        "contract"
-    ],
-    "categories": [
-        "Programming Languages",
-        "Snippets",
-        "Linters"
-    ],
-    "engines": {
-        "vscode": "^1.83.0"
-    },
-    "activationEvents": [
-        "onLanguage:cashscript"
-    ],
-    "main": "./out/src/extension",
-    "scripts": {
-        "vscode:prepublish": "npm run -S esbuild-base -- --minify",
-        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-        "esbuild": "npm run -S esbuild-base -- --sourcemap",
-        "esbuild-watch": "npm run -S esbuild-base -- --sourcemap --watch",
-        "test-compile": "tsc -p ./",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
-        "package": "vsce package"
-    },
-    "contributes": {
-        "languages": [
-            {
-                "id": "cashscript",
-                "aliases": [
-                    "cashscript",
-                    "Cashscript"
-                ],
-                "extensions": [
-                    ".cash"
-                ],
-                "configuration": "./cashscript.configuration.json"
-            }
+  "name": "cashscript",
+  "publisher": "NathanielCherian",
+  "displayName": "cashscript",
+  "description": "Cashscript language support for Visual Studio Code",
+  "version": "0.4.0",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathanielCherian/vscode-cashscript"
+  },
+  "bugs": {
+    "url": "https://github.com/nathanielCherian/vscode-cashscript/issues"
+  },
+  "contributors": [
+    "Nathaniel Cherian"
+  ],
+  "keywords": [
+    "cashscript",
+    "bch",
+    "blockchain",
+    "compiler",
+    "contract"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "activationEvents": [
+    "onLanguage:cashscript"
+  ],
+  "main": "./out/src/extension",
+  "scripts": {
+    "vscode:prepublish": "npm run -S esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "npm run -S esbuild-base -- --sourcemap",
+    "esbuild-watch": "npm run -S esbuild-base -- --sourcemap --watch",
+    "lint": "prettier --write .",
+    "test-compile": "tsc -p ./",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "cashscript",
+        "aliases": [
+          "cashscript",
+          "Cashscript"
         ],
-        "grammars": [
-            {
-                "language": "cashscript",
-                "scopeName": "source.cash",
-                "path": "./syntaxes/cashscript.tmLanguage.json"
-            }
+        "extensions": [
+          ".cash"
         ],
-        "snippets": [
-            {
-                "language": "cashscript",
-                "path": "./snippets/cashscript.snippets.json"
-            }
-        ]
-    },
-    "dependencies": {
-        "antlr4": "^4.13.1-patch-1",
-        "vsce": "^2.15.0",
-        "vscode-languageclient": "^7.0.0",
-        "vscode-languageserver": "^7.0.0",
-        "vscode-languageserver-textdocument": "^1.0.4",
-        "vscode-test": "^1.6.1"
-    },
-    "devDependencies": {
-        "@types/node": "^18.7.23",
-        "@types/vscode": "^1.83.0",
-        "esbuild": "^0.12.29",
-        "typescript": "^5.5.4"
-    }
+        "configuration": "./cashscript.configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cashscript",
+        "scopeName": "source.cash",
+        "path": "./syntaxes/cashscript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "cashscript",
+        "path": "./snippets/cashscript.snippets.json"
+      }
+    ]
+  },
+  "dependencies": {
+    "antlr4": "^4.13.1-patch-1",
+    "vsce": "^2.15.0",
+    "vscode-languageclient": "^7.0.0",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.23",
+    "@types/vscode": "^1.83.0",
+    "esbuild": "^0.12.29",
+    "prettier": "^3.4.2",
+    "typescript": "^5.5.4",
+    "vscode-test": "^1.6.1"
+  },
+  "packageManager": "yarn@4.6.0"
 }
