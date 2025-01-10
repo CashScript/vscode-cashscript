@@ -4,7 +4,7 @@
 ![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/CashScript.cashscript)
 ![Visual Studio Marketplace Rating (Stars)](https://img.shields.io/visual-studio-marketplace/stars/CashScript.cashscript)
 
-The `cashscript` extension for VS Code that provides auto-completion, linting, and more when writing smart contracts with [CashScript](https://cashscript.org/).
+The `cashscript` extension for VS Code provides auto-completion, linting, and more when writing smart contracts with [CashScript](https://cashscript.org/).
 
 <!-- TODO: Improvde video -->
 
