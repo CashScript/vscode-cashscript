@@ -1,5 +1,6 @@
 .vscode/**
 .vscode-test/**
+.yarn/** */
 out/test/**
 test/**
 src/**
@@ -7,5 +8,4 @@ src/**
 *.vsix
 .gitignore
 tsconfig.json
-vsc-extension-quickstart.md
 *.svg
