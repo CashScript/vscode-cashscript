@@ -312,9 +312,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cashscript@workspace:.":
+"cashscript-vscode@workspace:.":
   version: 0.0.0-use.local
-  resolution: "cashscript@workspace:."
+  resolution: "cashscript-vscode@workspace:."
   dependencies:
     "@types/node": "npm:^18.7.23"
     "@types/vscode": "npm:^1.83.0"
