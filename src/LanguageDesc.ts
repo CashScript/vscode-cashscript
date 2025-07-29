@@ -117,6 +117,7 @@ let TYPECASTS: Data = {
 
 let LANGUAGE: Data = { ...GLOBAL_FUNCTIONS, ...INSTANTIATIONS, ...STATEMENTS };
 
+// TODO: Add descriptions for all the completions here
 let DOT_COMPLETIONS: { [key: string]: CompletionItem[] } = {
   tx: [
     {
@@ -133,6 +134,10 @@ let DOT_COMPLETIONS: { [key: string]: CompletionItem[] } = {
     },
     {
       label: 'outputs',
+      kind: CompletionItemKind.Field,
+    },
+    {
+      label: 'time',
       kind: CompletionItemKind.Field,
     },
   ],
@@ -222,6 +227,10 @@ let DOT_COMPLETIONS: { [key: string]: CompletionItem[] } = {
       label: 'activeBytecode',
       kind: CompletionItemKind.Field,
     },
+    {
+      label: 'age',
+      kind: CompletionItemKind.Field,
+    }
   ],
 
   console: [

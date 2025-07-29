@@ -17,7 +17,6 @@ contract KitchenSink(pubkey pk) {
     bool b = true;
     string c = "Hello";
     bytes d = 0xabcd;
-    // TODO: autocomplete 'constant' keyword (and maybe other modifiers)
     int constant e = 2;
     // TODO: add text when hovering over 'unit' keywords
     int f = 10 bitcoin + 100 bits + 10_000 satoshis + 1e3 finney;
@@ -38,15 +37,15 @@ contract KitchenSink(pubkey pk) {
     bytes p = bytes(100, 4);
 
     // Bytes/string properties / methods
-    // TODO: Add autocomplete for .split() / .length / .reverse() etc
+    // TODO: Add autocomplete for .split() / .slice() / .length / .reverse() etc
+    // (this is hard because we don't have compiler output to get type information to determine which properties a variable has)
     bytes q, bytes r = 0xabcd.split(1);
     bytes s = 0xabcd.split(1)[0];
-    // TODO: Add highlighting + hover information for .length
+    // TODO: Add hover information for .length
     int t = s.length + 1;
     string u = "Hello World".reverse();
 
     // Global function calls
-    // TODO: Add autocomplete for sha1
     bytes v = sha256(c) + sha1(d) + ripemd160(12) + hash160('hello') + hash256(true);
     int w = abs(-12) + min(a, e) + max(1000, f);
     bool x = within(w, 0, 100);
@@ -57,13 +56,10 @@ contract KitchenSink(pubkey pk) {
     // Global variables
     // TODO: Make sure there is only 1 require autocomplete
     // TODO: Make sure there's hover information for everything here
-    // TODO: Make sure there's completions for tx.time
-    require(tx.time >= 10);
-    // TODO: Make sure there's completions for 'this'
     require(this.activeInputIndex == 1);
     require(this.activeBytecode.length == 64);
-    // TODO: Make sure there's completions for this.age
     require(this.age >= 10);
+    require(tx.time >= 10);
     require(tx.version == 2);
     require(tx.locktime < 100);
     // TODO: Make sure there's autocompletion for indexing tx.inputs (and similar arrays)
@@ -95,7 +91,7 @@ contract KitchenSink(pubkey pk) {
 
     // Debug functionality
     require(1 == 1, "1 should equal 1");
-    // TODO: Add highlighting, autocomplete, and hover information for .log
+    // TODO: hover information for console.log
     console.log(ac, "test");
 
     // Control structures

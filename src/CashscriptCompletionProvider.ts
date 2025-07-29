@@ -98,7 +98,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   // }
 
   protected getControlCompletions(): CompletionItem[] {
-    const words = ['pragma', 'cashscript', 'if', 'else', 'require'];
+    const words = ['pragma', 'cashscript', 'if', 'else'];
     const completions = [];
     for (let i = 0; i < words.length; i++) {
       this.currentIndex += 1;
@@ -162,6 +162,12 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
         // insertTextFormat:2
       },
       {
+        label: 'sha1',
+        detail: 'bytes20 sha1(any x): Returns the SHA-1 hash of argument `x`.',
+        insertText: 'sha1',
+        // insertTextFormat:2
+      },
+      {
         label: 'hash160',
         detail: 'bytes20 hash160(any x): Returns the RIPEMD-160 hash of the SHA-256 hash of argument `x`.',
         insertText: 'hash160',
@@ -215,6 +221,12 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
         insertText: 'console.log',
         // insertTextFormat:2
       },
+      {
+        label: 'date',
+        detail: 'int date(string dateString): Converts date string to timestamp',
+        insertText: 'date',
+        // insertTextFormat:2
+      },
     ];
   }
 
@@ -233,7 +245,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   }
 
   protected getTypesCompletions(): CompletionItem[] {
-    const words = ['int', 'bool', 'string', 'byte', 'bytes', 'pubkey', 'sig', 'datasig', 'true', 'false', 'date'];
+    const words = ['int', 'bool', 'string', 'byte', 'bytes', 'pubkey', 'sig', 'datasig', 'true', 'false', 'constant'];
     const completions = [];
     for (let i = 0; i < words.length; i++) {
       this.currentIndex += 1;

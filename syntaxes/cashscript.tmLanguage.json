@@ -1,20 +1,50 @@
 {
   "scopeName": "source.cash",
   "patterns": [
-    { "include": "#comment" },
-    { "include": "#operator" },
-    { "include": "#control" },
-    { "include": "#constant" },
-    { "include": "#number" },
-    { "include": "#string" },
-    { "include": "#type" },
-    { "include": "#global" },
-    { "include": "#declaration" },
-    { "include": "#punctuation" }
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#operator"
+    },
+    {
+      "include": "#control"
+    },
+    {
+      "include": "#constant"
+    },
+    {
+      "include": "#number"
+    },
+    {
+      "include": "#string"
+    },
+    {
+      "include": "#type"
+    },
+    {
+      "include": "#global"
+    },
+    {
+      "include": "#declaration"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#members"
+    }
   ],
   "repository": {
     "comment": {
-      "patterns": [{ "include": "#comment-line" }, { "include": "#comment-block" }]
+      "patterns": [
+        {
+          "include": "#comment-line"
+        },
+        {
+          "include": "#comment-block"
+        }
+      ]
     },
     "comment-line": {
       "match": "(?<!tp:)//.*?$",
@@ -25,7 +55,6 @@
       "end": "\\*/",
       "name": "comment.block.cashscript"
     },
-
     "operator": {
       "patterns": [
         {
@@ -54,7 +83,6 @@
       "match": "(\\^|\\&|\\|)",
       "name": "keyword.operator.binary.cashscript"
     },
-
     "control": {
       "patterns": [
         {
@@ -104,7 +132,6 @@
       "match": "\\b(constant)\\b",
       "name": "constant.language.modifer"
     },
-
     "constant": {
       "patterns": [
         {
@@ -130,7 +157,6 @@
       "match": "\\b(satoshis|sats|finney|bits|bitcoin)\\b",
       "name": "constant.language.currency.cashscript"
     },
-
     "number": {
       "patterns": [
         {
@@ -149,7 +175,6 @@
       "match": "\\b(0[xX][a-fA-F0-9]*)\\b",
       "name": "constant.numeric.hexadecimal.cashscript"
     },
-
     "string": {
       "patterns": [
         {
@@ -162,7 +187,6 @@
         }
       ]
     },
-
     "type": {
       "patterns": [
         {
@@ -174,7 +198,6 @@
       "match": "\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*)\\b",
       "name": "support.type.primitive.cashscript"
     },
-
     "global": {
       "patterns": [
         {
@@ -203,6 +226,18 @@
         }
       ]
     },
+    "members": {
+      "patterns": [
+        {
+          "match": "\\b(length)\\b",
+          "name": "support.type.property.cashscript"
+        },
+        {
+          "match": "\\b(split|reverse|slice|log)\\b",
+          "name": "support.function.members.cashscript"
+        }
+      ]
+    },
     "global-functions": {
       "patterns": [
         {
@@ -228,14 +263,9 @@
         {
           "match": "\\b(LockingBytecodeP2PKH|LockingBytecodeP2SH20|LockingBytecodeP2SH32|LockingBytecodeNullData)\\b",
           "name": "entity.name.function.declaration.cashscript"
-        },
-        {
-          "match": "\\b(split|reverse)\\b",
-          "name": "support.function.members.cashscript"
         }
       ]
     },
-
     "declaration": {
       "patterns": [
         {
@@ -276,7 +306,6 @@
         }
       ]
     },
-
     "punctuation": {
       "patterns": [
         {
