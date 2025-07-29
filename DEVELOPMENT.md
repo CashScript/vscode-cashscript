@@ -51,3 +51,17 @@ Press F5 anywhere to start the test window, open the examples folder to test out
 
 - To start using your extension with Visual Studio Code copy it into the `<user home>/.vscode/extensions` folder and restart Code.
 - To share your extension with the world, read on https://code.visualstudio.com/docs about publishing an extension.
+
+### Publish Extension
+
+To publish the extension, we run the following command:
+
+```
+yarn package
+```
+
+This creates a `cashscript-vscode-{version}.vsix` file in the root of the project.
+
+To publish the extension to the VS Code marketplace, we visit https://marketplace.visualstudio.com/manage/publishers/cashscript, right click on the CashScript extension in the list and select "Update". Then we upload the `cashscript-vscode-{version}.vsix` file and click "Upload".
+
+To publish to the Open VSX Registry, we visit https://open-vsx.org/user-settings/extensions and click "Publish Extension". Then we upload the `cashscript-vscode-{version}.vsix` file and click "Publish".

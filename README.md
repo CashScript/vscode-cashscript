@@ -6,7 +6,7 @@
 
 The `cashscript` extension for VS Code provides auto-completion, linting, and more when writing smart contracts with [CashScript](https://cashscript.org/).
 
-<!-- TODO: Improvde video -->
+<!-- TODO: Improve video -->
 
 ![example of vscode-cashscript](https://raw.githubusercontent.com/CashScript/vscode-cashscript/main/media/p2pkh.gif)
 
