@@ -57,7 +57,7 @@ Press F5 anywhere to start the test window, open the examples folder to test out
 To publish the extension, we run the following command:
 
 ```
-yarn package
+yarn clean && yarn build && yarn package
 ```
 
 This creates a `cashscript-vscode-{version}.vsix` file in the root of the project.

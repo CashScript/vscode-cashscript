@@ -3,7 +3,7 @@
   "publisher": "CashScript",
   "displayName": "CashScript VSCode",
   "description": "Cashscript language support for Visual Studio Code",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "icon": "media/icon.png",
   "repository": {
     "type": "git",
@@ -41,8 +41,8 @@
     "esbuild": "yarn esbuild-base --sourcemap",
     "esbuild-watch": "yarn esbuild-base --sourcemap --watch",
     "lint": "prettier --write .",
-    "test-compile": "tsc -p ./",
-    "compile": "tsc -p ./",
+    "build": "tsc -p ./",
+    "clean": "rm -rf out",
     "watch": "tsc -watch -p ./",
     "package": "vsce package --no-yarn"
   },

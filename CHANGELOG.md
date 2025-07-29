@@ -2,7 +2,7 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
-## v0.5.1
+## v0.5.2
 
 - Add support for CashScript v0.11.0
   - Add `slice` function
@@ -10,9 +10,9 @@ All notable changes to the "vscode-cashscript" extension will be documented in t
   - Add some missing completions & highlighting
   - Fix hover information for contract and function signatures
 
-## v0.5.0
+## v0.5.0 & v0.5.1
 
-This release was published incorrectly. All changes that were meant to be in this release are published in v0.5.1.
+These releases were published incorrectly. All changes that were meant to be in v0.5.0 are published in v0.5.2.
 
 ## v0.4.0
 
