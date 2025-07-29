@@ -36,12 +36,12 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
   }
 
   getMiscellaneousHovers(document: vscode.TextDocument, position: vscode.Position): vscode.MarkdownString[] {
-    const reg = /(contract|function)\s+(\w+)\s*\(.*\)/;
-    let range = document.getWordRangeAtPosition(position, reg);
-    let word = document.getText(range);
-    if (word.includes('\n')) return null;
+    const reg = /(contract|function)\s+(\w+)\s*\([\s\S]*?\)/g;
+    const range = getMultilineRegexRangeAroundPosition(document, position, reg);
+    if (!range) return null;
 
-    return [new vscode.MarkdownString().appendCodeblock(word)];
+    const signature = stripCommentsAndFlatten(document.getText(range));
+    return [new vscode.MarkdownString().appendCodeblock(signature)];
   }
 
   /*
@@ -92,3 +92,74 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
 }
 
 export default CashscriptHoverProvider;
+
+/**
+ * Finds the range of a multiline regex match around a given position.
+ *
+ * @param document The TextDocument to scan.
+ * @param position The position where the match should surround.
+ * @param pattern The RegExp pattern (must include the `g` flag if reused).
+ * @param maxLines How many lines above and below to scan (default: 20 total).
+ * @returns A Range if a match is found that includes the position, otherwise undefined.
+ */
+export function getMultilineRegexRangeAroundPosition(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  pattern: RegExp,
+  maxLines: number = 20
+): vscode.Range | undefined {
+  const halfRange = Math.floor(maxLines / 2);
+  const startLine = Math.max(0, position.line - halfRange);
+  const endLine = Math.min(document.lineCount - 1, position.line + halfRange);
+
+  const lines: string[] = [];
+  for (let i = startLine; i <= endLine; i++) {
+    lines.push(document.lineAt(i).text);
+  }
+
+  const joinedText = lines.join('\n');
+  const baseOffset = document.offsetAt(new vscode.Position(startLine, 0));
+
+  // Reset regex state if necessary
+  pattern.lastIndex = 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(joinedText)) !== null) {
+    const matchStartOffset = baseOffset + match.index;
+    const matchEndOffset = matchStartOffset + match[0].length;
+
+    const matchStart = document.positionAt(matchStartOffset);
+    const matchEnd = document.positionAt(matchEndOffset);
+
+    const matchRange = new vscode.Range(matchStart, matchEnd);
+
+    if (matchRange.contains(position)) {
+      return matchRange;
+    }
+
+    // Prevent infinite loops with zero-length matches
+    if (match.index === pattern.lastIndex) {
+      pattern.lastIndex++;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Removes comments and flattens a multiline function signature into a single line.
+ *
+ * @param input The input string, e.g., a function signature match.
+ * @returns A cleaned, one-line string.
+ */
+export function stripCommentsAndFlatten(input: string): string {
+  // Remove multiline block comments (/* ... */)
+  let output = input.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // Remove single-line comments (//...)
+  output = output.replace(/\/\/.*$/gm, '');
+
+  // Replace newlines and excessive whitespace with a single space
+  output = output.replace(/\s+/g, ' ').trim();
+
+  return output;
+}
