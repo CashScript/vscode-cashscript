@@ -10,9 +10,9 @@ contract DebugMessages() {
     int x = [];
     require(x > 1);
 
-    // Incorrect usage of tx.time / tx.age
+    // Incorrect usage of tx.time / this.age
     require(tx.time < 100);
-    require(tx.age < 100);
+    require(this.age < 100);
 
     // Incorrect typecheck in require
     // TODO: Make sure that there's an error when passing int into require()

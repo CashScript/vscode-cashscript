@@ -142,7 +142,7 @@
       ]
     },
     "number-decimal": {
-      "match": "\\b(\\d+(\\.\\d+)?)\\b",
+      "match": "\\b([0-9]+(_[0-9]+)*([eE][0-9]+(_[0-9]+)*)?)\\b",
       "name": "constant.numeric.decimal.cashscript"
     },
     "number-hex": {
