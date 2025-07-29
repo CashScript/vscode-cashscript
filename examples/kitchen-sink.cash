@@ -6,10 +6,9 @@ pragma cashscript >= 0.7.0 < 0.200.0;
     byte identifier == 0x02
 */
 
-// TODO: Make sure that hovering to see function and contract signature still works with multiline params
 contract KitchenSink(pubkey pk) {
   function spend(
-    sig s,
+    sig s /* Comments inside function signature get removed in the hover text */,
     datasig ds
   ) {
     // Assignments / definitions
