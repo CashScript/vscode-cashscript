@@ -1,0 +1,16 @@
+// New additions:
+// - Underscores & scientific notation for numbers
+// - slice()
+// - tx.age => this.age
+
+contract Updates2025() {
+  function spend() {
+    int x = 1_000;
+    int y = 1e6;
+
+    require(x == y);
+    require(this.age >= x);
+
+    require("Bitcoin Cash".slice(0, 7) == "Bitcoin");
+  }
+}
