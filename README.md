@@ -1,6 +1,6 @@
 # vscode-cashscript
 
-![Visual Studio Marketplace Version (including pre-releases)](https://img.shields.io/visual-studio-marketplace/v/CashScript.cashscript-vscode)
+![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/CashScript.cashscript-vscode)
 ![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/CashScript.cashscript-vscode)
 ![Visual Studio Marketplace Rating (Stars)](https://img.shields.io/visual-studio-marketplace/stars/CashScript.cashscript-vscode)
 
