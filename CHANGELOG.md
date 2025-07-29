@@ -2,6 +2,14 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
+## v0.5.0
+
+- Add support for CashScript v0.11.0
+  - Add `slice` function
+  - Rename `tx.age` property to `this.age`
+  - Add some missing completions & highlighting
+  - Fix hover information for contract and function signatures
+
 ## v0.4.0
 
 - Add support for CashScript v0.10.0

@@ -2,7 +2,7 @@
 pragma cashscript >= 0.7.0 < 0.200.0;
 
 /*  --- State Immutable NFT ---
-    // TOOD: Make sure that this 'identifier' doesn't get included in autocompletion elsewhere in the code
+    // TODO: Make sure that this 'identifier' doesn't get included in autocompletion elsewhere in the code
     byte identifier == 0x02
 */
 
