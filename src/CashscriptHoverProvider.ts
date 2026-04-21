@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { LANGUAGE } from './LanguageDesc';
 
 class CashscriptHoverProvider implements vscode.HoverProvider {
-  re = /[a-zA-Z0-9]+/g; // regex to get selected word
+  re = /[a-zA-Z0-9_]+/g; // regex to get selected word
   constructor(private channel: vscode.OutputChannel = null) { }
 
   provideHover(
@@ -29,10 +29,18 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
   }
 
   getHoverAnnotation(word: string): vscode.MarkdownString[] {
-    const data = LANGUAGE[word] || null;
+    const boundedBytesMatch = word.match(/^(unsafe_)?bytes(\d+)$/);
+    const lookupKey = boundedBytesMatch ? `${boundedBytesMatch[1] ?? ''}bytesN` : word;
+
+    const data = LANGUAGE[lookupKey] || null;
     if (!data) return null;
 
-    return [new vscode.MarkdownString().appendCodeblock(data.code), new vscode.MarkdownString(data.codeDesc)];
+    const code = boundedBytesMatch ? data.code.replace(/(?:unsafe_)?bytesN/g, word) : data.code;
+    const codeDesc = boundedBytesMatch
+      ? data.codeDesc.replace(/\bN bytes\b/g, `${boundedBytesMatch[2]} bytes`)
+      : data.codeDesc;
+
+    return [new vscode.MarkdownString().appendCodeblock(code), new vscode.MarkdownString(codeDesc)];
   }
 
   getMiscellaneousHovers(document: vscode.TextDocument, position: vscode.Position): vscode.MarkdownString[] {
@@ -62,7 +70,11 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
    */
   getVariableType(variable: string, document: vscode.TextDocument) {
     const text = document.getText();
-    const matches = text.match(new RegExp(`\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*)\\s+${variable}\\b`)); //regex still incomplete
+    const matches = text.match(
+      new RegExp(
+        `\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*|unsafe_int|unsafe_bool|unsafe_byte|unsafe_bytes\\d*)\\s+(?:constant\\s+)?${variable}\\b`,
+      ),
+    ); //regex still incomplete
     if (!matches) return null;
     return matches[1];
   }

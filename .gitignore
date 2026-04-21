@@ -13,3 +13,5 @@ examples/*.json
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+.claude

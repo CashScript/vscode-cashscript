@@ -30,10 +30,10 @@ contract KitchenSink(pubkey pk) {
     sig k = sig(d);
     datasig l = datasig(bytes(k));
     bytes m = bytes(200);
-    bytes20 n = bytes20(500);
+    bytes20 n = unsafe_bytes20(500);
     int o = int(n);
-    // TODO: Add autocomplete for `bytes(num, bytesize)` casting
-    bytes p = bytes(100, 4);
+    // TODO: Add autocomplete for `toPaddedBytes(num, bytesize)`
+    bytes p = toPaddedBytes(100, 4);
 
     // Bytes/string properties / methods
     // TODO: Add autocomplete for .split() / .slice() / .length / .reverse() etc
@@ -88,6 +88,20 @@ contract KitchenSink(pubkey pk) {
     bytes ad = 0xab + 0xcd & 0xabcd | 0x1234 ^ 0x0000;
     bool ac = 0xabcd == 0xabcd && 0xabcd != 0x1234;
 
+    // Bitshift, arithmetic shift, and invert operators
+    int ae = (1 << 4) >> 1;
+    int af = ~ae;
+
+    // toPaddedBytes replaces the removed `bytes(value, size)` padding cast
+    bytes ag = toPaddedBytes(1234, 8);
+
+    // Unsafe casts: skip runtime type enforcement
+    int ah = unsafe_int(0x01);
+    bool ai = unsafe_bool(0x01);
+    bytes aj = unsafe_bytes(0xabcd);
+    bytes1 ak = unsafe_byte(0xab);
+    bytes20 al = unsafe_bytes20(0x000102030405060708090a0b0c0d0e0f10111213);
+
     // Debug functionality
     require(1 == 1, "1 should equal 1");
     // TODO: hover information for console.log
@@ -100,6 +114,22 @@ contract KitchenSink(pubkey pk) {
       require(sha256(aa) == y);
     } else {
       require(false); // fail
+    }
+
+    // Loops
+    int am = 0;
+    do {
+      am = am + 1;
+    } while (am < 3);
+
+    int an = 0;
+    while (an < 3) {
+      an = an + 1;
+    }
+
+    int ao = 0;
+    for (int ap = 0; ap < 3; ap = ap + 1) {
+      ao = ao + ap;
     }
   }
 }

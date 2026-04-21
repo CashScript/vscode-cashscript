@@ -1,0 +1,50 @@
+// New additions in CashScript v0.13:
+// - do-while / while / for loops
+// - unsafe_int, unsafe_bool, unsafe_bytes, unsafe_byte casts
+// - toPaddedBytes(int, int) global function
+// - bitshift operators (<< / >>), arithmetic shift, invert (~)
+// - bytes => bytesX padding cast removed (use toPaddedBytes instead)
+// - boolean int coercion in int => bool cast
+
+pragma cashscript ^0.13.0;
+
+contract Updates2026() {
+  function spend(int n) {
+    // do-while loop: final require inside loops enforces the loop condition
+    int i = 0;
+    do {
+      console.log(i);
+      i = i + 1;
+    } while (i < 3);
+
+    // while loop
+    int j = 0;
+    while (j < n) {
+      j = j + 1;
+    }
+
+    // for loop
+    int sum = 0;
+    for (int k = 0; k < n; k = k + 1) {
+      sum = sum + k;
+    }
+
+    // toPaddedBytes replaces the old `bytes(value, size)` padding cast
+    bytes padded = toPaddedBytes(1234, 8);
+    require(padded.length == 8);
+
+    // Bitshift, arithmetic shift and invert operators
+    int shifted = 1 << 4;
+    int right = 64 >> 2;
+    int inverted = ~5;
+    require(shifted == 16 && right == 16 && inverted == -6);
+
+    // Unsafe casts: skip runtime type enforcement (use with care).
+    // These are casts only — variables still use the regular int/bool/bytes types.
+    int a = unsafe_int(0x01);
+    bool b = unsafe_bool(0x01);
+    bytes c = unsafe_bytes(0xabcd);
+    bytes1 d = unsafe_byte(0xab);
+    require(a == 1);
+  }
+}

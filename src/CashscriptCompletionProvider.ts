@@ -72,7 +72,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   }
 
   protected getVarCompletions(): CompletionItem[] {
-    const re = /(int|bool|string|pubkey|sig|datasig|byte|bytes|bytes[0-9]+)\s+(\w+)/g;
+    const re = /(int|bool|string|pubkey|sig|datasig|byte|bytes|bytes[0-9]+)\s+(?:constant\s+)?(\w+)/g;
     const completions: CompletionItem[] = [];
     for (const m of this.text.matchAll(re)) {
       completions.push({
@@ -98,7 +98,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   // }
 
   protected getControlCompletions(): CompletionItem[] {
-    const words = ['pragma', 'cashscript', 'if', 'else'];
+    const words = ['pragma', 'cashscript', 'if', 'else', 'do', 'while', 'for'];
     const completions = [];
     for (let i = 0; i < words.length; i++) {
       this.currentIndex += 1;
@@ -227,6 +227,12 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
         insertText: 'date',
         // insertTextFormat:2
       },
+      {
+        label: 'toPaddedBytes',
+        detail:
+          'bytes toPaddedBytes(int value, int size): Converts an integer to a zero-padded bytes sequence of length `size`.',
+        insertText: 'toPaddedBytes',
+      },
     ];
   }
 
@@ -245,7 +251,23 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   }
 
   protected getTypesCompletions(): CompletionItem[] {
-    const words = ['int', 'bool', 'string', 'byte', 'bytes', 'pubkey', 'sig', 'datasig', 'true', 'false', 'constant'];
+    const words = [
+      'int',
+      'bool',
+      'string',
+      'byte',
+      'bytes',
+      'pubkey',
+      'sig',
+      'datasig',
+      'true',
+      'false',
+      'constant',
+      'unsafe_int',
+      'unsafe_bool',
+      'unsafe_byte',
+      'unsafe_bytes',
+    ];
     const completions = [];
     for (let i = 0; i < words.length; i++) {
       this.currentIndex += 1;

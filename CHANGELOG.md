@@ -2,6 +2,15 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
+## v0.6.0
+
+- Add support for CashScript v0.13.0
+  - Add `do-while`, `while` and `for` loops (grammar, highlighting, snippets, completions)
+  - Add `unsafe_int`, `unsafe_bool`, `unsafe_byte`, `unsafe_bytes` casts
+  - Add `toPaddedBytes(int, int)` global function
+  - Add `<<`, `>>` bitshift and `~` invert operators
+  - Remove the two-argument `bytes(value, size)` padding cast (replaced by `toPaddedBytes`)
+
 ## v0.5.2
 
 - Add support for CashScript v0.11.0

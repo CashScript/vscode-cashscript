@@ -58,6 +58,9 @@
     "operator": {
       "patterns": [
         {
+          "include": "#operator-shift"
+        },
+        {
           "include": "#operator-logic-assignment"
         },
         {
@@ -75,12 +78,16 @@
       "match": "(&&|\\|\\||[<>!=]=?|\\+\\+|--)",
       "name": "keyword.operator.logic_assignment.cashscript"
     },
+    "operator-shift": {
+      "match": "(<<|>>)",
+      "name": "keyword.operator.shift.cashscript"
+    },
     "operator-arithmetic": {
       "match": "(\\+|\\-|\/|%|\\*)",
       "name": "keyword.operator.arithmetic.cashscript"
     },
     "operator-binary": {
-      "match": "(\\^|\\&|\\|)",
+      "match": "(\\^|\\&|\\||~)",
       "name": "keyword.operator.binary.cashscript"
     },
     "control": {
@@ -103,7 +110,7 @@
       ]
     },
     "control-flow": {
-      "match": "\\b(if|else|require)\\b",
+      "match": "\\b(if|else|require|do|while|for)\\b",
       "name": "keyword.control.flow.cashscript"
     },
     "control-pragma": {
@@ -195,7 +202,7 @@
       ]
     },
     "type-primitive": {
-      "match": "\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*)\\b",
+      "match": "\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*|unsafe_int|unsafe_bool|unsafe_byte|unsafe_bytes\\d*)\\b",
       "name": "support.type.primitive.cashscript"
     },
     "global": {
@@ -257,7 +264,7 @@
           "name": "entity.name.function.checking.cashscript"
         },
         {
-          "match": "\\b(date)\\b",
+          "match": "\\b(date|toPaddedBytes)\\b",
           "name": "entity.name.function.utility.cashscript"
         },
         {

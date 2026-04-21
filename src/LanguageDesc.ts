@@ -67,6 +67,11 @@ let GLOBAL_FUNCTIONS: Data = {
     code: 'console.log(...args)',
     codeDesc: 'Logs primitve data or variable values to debug console. Has no effect in production.',
   },
+  toPaddedBytes: {
+    code: 'bytes toPaddedBytes(int value, int size)',
+    codeDesc:
+      'Converts an integer `value` to a bytes sequence of length `size`, padded with zero-bytes. Fails at runtime if the integer does not fit into `size` bytes.',
+  },
 };
 
 let INSTANTIATIONS: Data = {
@@ -103,19 +108,46 @@ let TYPECASTS: Data = {
   },
   bytes: {
     code: 'bytes bytes( v )',
-    codeDesc: 'Converts to bytes',
+    codeDesc: 'Converts to an unbounded bytes sequence.',
+  },
+  bytesN: {
+    code: 'bytesN bytesN( v )',
+    codeDesc: 'Converts to a bytes sequence of exactly N bytes. Fails at runtime if the value does not fit.',
   },
   bool: {
     code: 'bool bool( v )',
-    codeDesc: 'Converts to bool',
+    codeDesc: 'Converts to bool. Integer values are coerced to 1 (truthy) or 0 (false).',
   },
   date: {
     code: 'int date(" YYYY-MM-DDThh:mm:ss ")',
     codeDesc: 'Converts implicit date to timestamp',
   },
+  unsafe_int: {
+    code: 'unsafe_int unsafe_int( v )',
+    codeDesc:
+      'Unsafe cast to int: reinterprets the value without type enforcement at runtime. The caller is responsible for ensuring the value is a valid Script number.',
+  },
+  unsafe_bool: {
+    code: 'unsafe_bool unsafe_bool( v )',
+    codeDesc:
+      'Unsafe cast to bool: reinterprets the value without coercing to 1 / 0. The caller is responsible for ensuring the value is already a valid boolean.',
+  },
+  unsafe_bytes: {
+    code: 'unsafe_bytes unsafe_bytes( v )',
+    codeDesc: 'Unsafe cast to unbounded bytes. No runtime length or type enforcement.',
+  },
+  unsafe_bytesN: {
+    code: 'unsafe_bytesN unsafe_bytesN( v )',
+    codeDesc:
+      'Unsafe cast to a bytes sequence of N bytes. Skips the runtime length check — the caller is responsible for guaranteeing the value is exactly N bytes.',
+  },
+  unsafe_byte: {
+    code: 'unsafe_byte unsafe_byte( v )',
+    codeDesc: 'Unsafe cast to a single byte. No runtime length enforcement.',
+  },
 };
 
-let LANGUAGE: Data = { ...GLOBAL_FUNCTIONS, ...INSTANTIATIONS, ...STATEMENTS };
+let LANGUAGE: Data = { ...GLOBAL_FUNCTIONS, ...INSTANTIATIONS, ...STATEMENTS, ...TYPECASTS };
 
 // TODO: Add descriptions for all the completions here
 let DOT_COMPLETIONS: { [key: string]: CompletionItem[] } = {
