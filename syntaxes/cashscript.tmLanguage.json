@@ -114,18 +114,30 @@
       "name": "keyword.control.flow.cashscript"
     },
     "control-pragma": {
-      "match": "\\b(pragma)(?:\\s+([A-Za-z_]\\w+)\\s+([^\\s]+))?\\b",
-      "captures": {
+      "begin": "\\b(pragma)\\b",
+      "end": "(?=;)",
+      "beginCaptures": {
         "1": {
           "name": "keyword.control.pragma.cashscript"
-        },
-        "2": {
+        }
+      },
+      "patterns": [
+        {
+          "match": "\\b(cashscript)\\b",
           "name": "entity.name.tag.pragma.cashscript"
         },
-        "3": {
-          "name": "constant.other.pragma.cashscript"
+        {
+          "match": "(\\^|~|>=|<=|>|<|=)?\\s*(\\d+\\.\\d+\\.\\d+)",
+          "captures": {
+            "1": {
+              "name": "keyword.operator.pragma.cashscript"
+            },
+            "2": {
+              "name": "constant.other.pragma.cashscript"
+            }
+          }
         }
-      }
+      ]
     },
     "control-other": {
       "match": "\\b(new)\\b",

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LANGUAGE } from './LanguageDesc';
+import { LANGUAGE, TYPES } from './LanguageDesc';
 
 class CashscriptHoverProvider implements vscode.HoverProvider {
   re = /[a-zA-Z0-9_]+/g; // regex to get selected word
@@ -13,19 +13,42 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     let range = document.getWordRangeAtPosition(position, this.re);
     let word = document.getText(range);
 
+    const dotted = getDottedWord(document, position, range, word);
+    if (dotted) {
+      const annotation = this.getHoverAnnotation(dotted.word);
+      if (annotation) return new vscode.Hover(annotation, dotted.range);
+    }
+
+    const isTypeDeclaration = !isFollowedByOpenParen(document, range);
+    if (isTypeDeclaration) {
+      const typeAnnotation = this.getTypeAnnotation(word);
+      if (typeAnnotation) return new vscode.Hover(typeAnnotation, range);
+    }
+
     const varTypes = this.getVariableTypes(document, word); // fix this
     if (varTypes) return new vscode.Hover(varTypes, range);
 
     const annotation = this.getHoverAnnotation(word);
     if (annotation) return new vscode.Hover(annotation, range);
 
-    const memberHovers = this.getMemberHovers(document, word);
-    if (memberHovers) return new vscode.Hover(memberHovers, range);
-
     const miscel = this.getMiscellaneousHovers(document, position);
     if (miscel) return new vscode.Hover(miscel, range);
 
     return null;
+  }
+
+  getTypeAnnotation(word: string): vscode.MarkdownString[] {
+    const boundedBytesMatch = word.match(/^bytes(\d+)$/);
+    const lookupKey = boundedBytesMatch ? 'bytesN' : word;
+    const data = TYPES[lookupKey] || null;
+    if (!data) return null;
+
+    const code = boundedBytesMatch ? data.code.replace(/\bbytesN\b/g, word) : data.code;
+    const codeDesc = boundedBytesMatch
+      ? data.codeDesc.replace(/\bN bytes\b/g, `${boundedBytesMatch[1]} bytes`)
+      : data.codeDesc;
+
+    return [new vscode.MarkdownString().appendCodeblock(code), new vscode.MarkdownString(codeDesc)];
   }
 
   getHoverAnnotation(word: string): vscode.MarkdownString[] {
@@ -35,17 +58,21 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     const data = LANGUAGE[lookupKey] || null;
     if (!data) return null;
 
-    const code = boundedBytesMatch ? data.code.replace(/(?:unsafe_)?bytesN/g, word) : data.code;
-    const codeDesc = boundedBytesMatch
-      ? data.codeDesc.replace(/\bN bytes\b/g, `${boundedBytesMatch[2]} bytes`)
-      : data.codeDesc;
+    let code = data.code;
+    let codeDesc = data.codeDesc;
+    if (boundedBytesMatch) {
+      const bareBytes = `bytes${boundedBytesMatch[2]}`;
+      // Replace the cast-name token first so the bare replacement doesn't clobber it.
+      code = code.replace(/unsafe_bytesN/g, word).replace(/bytesN/g, bareBytes);
+      codeDesc = codeDesc.replace(/\bN bytes\b/g, `${boundedBytesMatch[2]} bytes`);
+    }
 
     return [new vscode.MarkdownString().appendCodeblock(code), new vscode.MarkdownString(codeDesc)];
   }
 
   getMiscellaneousHovers(document: vscode.TextDocument, position: vscode.Position): vscode.MarkdownString[] {
     const reg = /(contract|function)\s+(\w+)\s*\([\s\S]*?\)/g;
-    const range = getMultilineRegexRangeAroundPosition(document, position, reg);
+    const range = findEnclosingMatch(document, position, reg);
     if (!range) return null;
 
     const signature = stripCommentsAndFlatten(document.getText(range));
@@ -79,82 +106,94 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     return matches[1];
   }
 
-  getMemberHovers(document: vscode.TextDocument, word: string) {
-    if (word === 'split') {
-      return [
-        new vscode.MarkdownString().appendCodeblock('[s1, s2] sequence.split(int i)'),
-        new vscode.MarkdownString(
-          'Splits the sequence at the specified index and returns a tuple with the two resulting sequences.',
-        ),
-      ];
-    } else if (word === 'reverse') {
-      return [
-        new vscode.MarkdownString().appendCodeblock('any sequence.reverse()'),
-        new vscode.MarkdownString('Reverses the sequence.'),
-      ];
-    } else if (word === 'slice') {
-      return [
-        new vscode.MarkdownString().appendCodeblock('any sequence.slice(int start, int end)'),
-        new vscode.MarkdownString('Returns a new sequence containing the elements from start to end.'),
-      ];
-    }
+}
 
-    return null;
-  }
+/**
+ * True when the character immediately after the word range (ignoring spaces) is `(`.
+ * Used to distinguish a type-cast (e.g. `bytes(x)`) from a type-declaration (`bytes ag = ...`).
+ */
+function isFollowedByOpenParen(document: vscode.TextDocument, range: vscode.Range | undefined): boolean {
+  if (!range) return false;
+  const lineText = document.lineAt(range.end.line).text;
+  const after = lineText.slice(range.end.character);
+  return /^\s*\(/.test(after);
+}
+
+/**
+ * If the hovered word is preceded by `prefix.` (e.g. `console.log`), return the
+ * combined dotted identifier and its range. Returns null when the surrounding
+ * context isn't a dotted identifier.
+ */
+function getDottedWord(
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  range: vscode.Range | undefined,
+  word: string,
+): { word: string; range: vscode.Range } | null {
+  if (!range) return null;
+
+  const lineText = document.lineAt(position.line).text;
+  const before = lineText.slice(0, range.start.character);
+  // Walk backwards through consecutive `identifier.` or `identifier[...].` segments
+  // to support paths like `tx.inputs.length` and `tx.inputs[0].value`.
+  const prefixMatch = before.match(/((?:[A-Za-z_]\w*(?:\[[^\]]*\])?\.)+)$/);
+  if (!prefixMatch) return null;
+
+  const prefix = prefixMatch[1];
+  // Normalise array indices to `[]` so lookups hit a single generic entry.
+  const normalisedPrefix = prefix.replace(/\[[^\]]*\]/g, '[]');
+  const combined = `${normalisedPrefix}${word}`;
+  const startChar = range.start.character - prefix.length;
+  const combinedRange = new vscode.Range(
+    new vscode.Position(position.line, startChar),
+    range.end,
+  );
+  return { word: combined, range: combinedRange };
 }
 
 export default CashscriptHoverProvider;
 
 /**
- * Finds the range of a multiline regex match around a given position.
- *
- * @param document The TextDocument to scan.
- * @param position The position where the match should surround.
- * @param pattern The RegExp pattern (must include the `g` flag if reused).
- * @param maxLines How many lines above and below to scan (default: 20 total).
- * @returns A Range if a match is found that includes the position, otherwise undefined.
+ * Scans the entire document for matches of `pattern` and returns the range of
+ * the first match that contains `position`. Comments are blanked out first so
+ * syntactically-significant characters inside comments (e.g. a `)` inside a
+ * `// ...` line) don't terminate multi-line signature matches early.
  */
-export function getMultilineRegexRangeAroundPosition(
+export function findEnclosingMatch(
   document: vscode.TextDocument,
   position: vscode.Position,
   pattern: RegExp,
-  maxLines: number = 20
 ): vscode.Range | undefined {
-  const halfRange = Math.floor(maxLines / 2);
-  const startLine = Math.max(0, position.line - halfRange);
-  const endLine = Math.min(document.lineCount - 1, position.line + halfRange);
+  const text = blankOutComments(document.getText());
 
-  const lines: string[] = [];
-  for (let i = startLine; i <= endLine; i++) {
-    lines.push(document.lineAt(i).text);
-  }
-
-  const joinedText = lines.join('\n');
-  const baseOffset = document.offsetAt(new vscode.Position(startLine, 0));
-
-  // Reset regex state if necessary
   pattern.lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(joinedText)) !== null) {
-    const matchStartOffset = baseOffset + match.index;
-    const matchEndOffset = matchStartOffset + match[0].length;
+  while ((match = pattern.exec(text)) !== null) {
+    const start = document.positionAt(match.index);
+    const end = document.positionAt(match.index + match[0].length);
+    const range = new vscode.Range(start, end);
 
-    const matchStart = document.positionAt(matchStartOffset);
-    const matchEnd = document.positionAt(matchEndOffset);
-
-    const matchRange = new vscode.Range(matchStart, matchEnd);
-
-    if (matchRange.contains(position)) {
-      return matchRange;
+    if (range.contains(position)) {
+      return range;
     }
 
-    // Prevent infinite loops with zero-length matches
     if (match.index === pattern.lastIndex) {
       pattern.lastIndex++;
     }
   }
 
   return undefined;
+}
+
+/**
+ * Replace every character inside `//` line comments and `/* *\/` block comments
+ * with a space (newlines preserved) so byte offsets stay aligned with the
+ * original document while the comment content itself is invisible to regexes.
+ */
+function blankOutComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
 }
 
 /**

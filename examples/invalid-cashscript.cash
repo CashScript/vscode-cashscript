@@ -49,7 +49,6 @@ contract DebugMessages() {
 
     // Invalid expressions
     int z = 5 ** 2;
-    bytes bb = 0xabcd << 1 + 0xabcd >> 1;
     sig cc = sig(0xabcd) | sig(0xabcd)
   }
 }

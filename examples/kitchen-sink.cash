@@ -1,8 +1,6 @@
-// TODO: Make sure the entire pragma value is highlighted the same + allow for spaces and multiple constraints
 pragma cashscript >= 0.7.0 < 0.200.0;
 
 /*  --- State Immutable NFT ---
-    // TODO: Make sure that this 'identifier' doesn't get included in autocompletion elsewhere in the code
     byte identifier == 0x02
 */
 
@@ -17,7 +15,6 @@ contract KitchenSink(pubkey pk) {
     string c = "Hello";
     bytes d = 0xabcd;
     int constant e = 2;
-    // TODO: add text when hovering over 'unit' keywords
     int f = 10 bitcoin + 100 bits + 10_000 satoshis + 1e3 finney;
     int g = 4 weeks + 1e3 days + 12 hours + 5 minutes + 1_000e3 seconds;
     int g2 = date("2021-02-17T01:30:00");
@@ -32,15 +29,11 @@ contract KitchenSink(pubkey pk) {
     bytes m = bytes(200);
     bytes20 n = unsafe_bytes20(500);
     int o = int(n);
-    // TODO: Add autocomplete for `toPaddedBytes(num, bytesize)`
     bytes p = toPaddedBytes(100, 4);
 
     // Bytes/string properties / methods
-    // TODO: Add autocomplete for .split() / .slice() / .length / .reverse() etc
-    // (this is hard because we don't have compiler output to get type information to determine which properties a variable has)
     bytes q, bytes r = 0xabcd.split(1);
     bytes s = 0xabcd.split(1)[0];
-    // TODO: Add hover information for .length
     int t = s.length + 1;
     string u = "Hello World".reverse();
 
@@ -53,15 +46,12 @@ contract KitchenSink(pubkey pk) {
     require(checkMultiSig([s, s], [pk, pk]));
 
     // Global variables
-    // TODO: Make sure there is only 1 require autocomplete
-    // TODO: Make sure there's hover information for everything here
     require(this.activeInputIndex == 1);
     require(this.activeBytecode.length == 64);
     require(this.age >= 10);
     require(tx.time >= 10);
     require(tx.version == 2);
     require(tx.locktime < 100);
-    // TODO: Make sure there's autocompletion for indexing tx.inputs (and similar arrays)
     require(tx.inputs[0].value == 1 bitcoin);
     require(tx.inputs[0].lockingBytecode == new LockingBytecodeP2SH20(hash160(0xabcd)));
     require(tx.inputs[0].nftCommitment == 0x00);
@@ -104,7 +94,6 @@ contract KitchenSink(pubkey pk) {
 
     // Debug functionality
     require(1 == 1, "1 should equal 1");
-    // TODO: hover information for console.log
     console.log(ac, "test");
 
     // Control structures

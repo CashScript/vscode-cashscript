@@ -97,6 +97,180 @@ let INSTANTIATIONS: Data = {
 
 let STATEMENTS: Data = {};
 
+let UNITS: Data = {
+  satoshis: {
+    code: 'int * satoshis',
+    codeDesc: 'Satoshi unit. 1 satoshi = 1. The base unit of a BCH amount.',
+  },
+  sats: {
+    code: 'int * sats',
+    codeDesc: 'Alias for `satoshis`. 1 sats = 1.',
+  },
+  finney: {
+    code: 'int * finney',
+    codeDesc: '1 finney = 10 satoshis.',
+  },
+  bits: {
+    code: 'int * bits',
+    codeDesc: '1 bits = 100 satoshis.',
+  },
+  bitcoin: {
+    code: 'int * bitcoin',
+    codeDesc: '1 bitcoin = 100_000_000 satoshis.',
+  },
+  seconds: {
+    code: 'int * seconds',
+    codeDesc: 'Time unit. 1 seconds = 1. The base unit of a time value.',
+  },
+  minutes: {
+    code: 'int * minutes',
+    codeDesc: '1 minutes = 60 seconds.',
+  },
+  hours: {
+    code: 'int * hours',
+    codeDesc: '1 hours = 3600 seconds.',
+  },
+  days: {
+    code: 'int * days',
+    codeDesc: '1 days = 86_400 seconds.',
+  },
+  weeks: {
+    code: 'int * weeks',
+    codeDesc: '1 weeks = 604_800 seconds.',
+  },
+};
+
+let INTROSPECTION: Data = {
+  this: {
+    code: 'this',
+    codeDesc: 'The contract input currently being evaluated.',
+  },
+  'this.activeInputIndex': {
+    code: 'int this.activeInputIndex',
+    codeDesc: 'The index of the input whose unlocking script is currently being evaluated.',
+  },
+  'this.activeBytecode': {
+    code: 'bytes this.activeBytecode',
+    codeDesc: 'The locking bytecode of the input currently being evaluated (i.e. this contract).',
+  },
+  'this.age': {
+    code: 'int this.age',
+    codeDesc:
+      'Relative age (sequence-number) check. `require(this.age >= N)` enforces that this input is at least `N` blocks or seconds old (BIP68).',
+  },
+  tx: {
+    code: 'tx',
+    codeDesc: 'The transaction currently being evaluated.',
+  },
+  'tx.version': {
+    code: 'int tx.version',
+    codeDesc: 'The transaction version field.',
+  },
+  'tx.locktime': {
+    code: 'int tx.locktime',
+    codeDesc: 'The transaction locktime field.',
+  },
+  'tx.time': {
+    code: 'int tx.time',
+    codeDesc:
+      'Absolute locktime check. `require(tx.time >= N)` enforces that the transaction is only valid after block height / timestamp `N` (BIP65).',
+  },
+  'tx.inputs': {
+    code: 'Input[] tx.inputs',
+    codeDesc: 'The list of inputs of the current transaction. Index into it with `tx.inputs[i]`.',
+  },
+  'tx.outputs': {
+    code: 'Output[] tx.outputs',
+    codeDesc: 'The list of outputs of the current transaction. Index into it with `tx.outputs[i]`.',
+  },
+  'tx.inputs.length': {
+    code: 'int tx.inputs.length',
+    codeDesc: 'The number of inputs in the current transaction.',
+  },
+  'tx.outputs.length': {
+    code: 'int tx.outputs.length',
+    codeDesc: 'The number of outputs in the current transaction.',
+  },
+  'tx.inputs[].value': {
+    code: 'int tx.inputs[i].value',
+    codeDesc: 'The value (in satoshis) of input `i`.',
+  },
+  'tx.inputs[].lockingBytecode': {
+    code: 'bytes tx.inputs[i].lockingBytecode',
+    codeDesc: 'The locking bytecode of the UTXO being spent by input `i`.',
+  },
+  'tx.inputs[].unlockingBytecode': {
+    code: 'bytes tx.inputs[i].unlockingBytecode',
+    codeDesc: 'The unlocking bytecode (scriptSig) of input `i`.',
+  },
+  'tx.inputs[].outpointTransactionHash': {
+    code: 'bytes32 tx.inputs[i].outpointTransactionHash',
+    codeDesc: 'The transaction hash of the outpoint being spent by input `i`.',
+  },
+  'tx.inputs[].outpointIndex': {
+    code: 'int tx.inputs[i].outpointIndex',
+    codeDesc: 'The output index of the outpoint being spent by input `i`.',
+  },
+  'tx.inputs[].sequenceNumber': {
+    code: 'int tx.inputs[i].sequenceNumber',
+    codeDesc: 'The sequence number of input `i`.',
+  },
+  'tx.inputs[].tokenCategory': {
+    code: 'bytes tx.inputs[i].tokenCategory',
+    codeDesc:
+      'The token category (+ optional capability byte) of input `i`. Empty bytes if the input carries no tokens.',
+  },
+  'tx.inputs[].nftCommitment': {
+    code: 'bytes tx.inputs[i].nftCommitment',
+    codeDesc: 'The NFT commitment bytes of input `i`. Empty bytes if the input is not an NFT.',
+  },
+  'tx.inputs[].tokenAmount': {
+    code: 'int tx.inputs[i].tokenAmount',
+    codeDesc: 'The fungible token amount of input `i`. Zero if the input carries no fungible tokens.',
+  },
+  'tx.outputs[].value': {
+    code: 'int tx.outputs[i].value',
+    codeDesc: 'The value (in satoshis) of output `i`.',
+  },
+  'tx.outputs[].lockingBytecode': {
+    code: 'bytes tx.outputs[i].lockingBytecode',
+    codeDesc: 'The locking bytecode of output `i`.',
+  },
+  'tx.outputs[].tokenCategory': {
+    code: 'bytes tx.outputs[i].tokenCategory',
+    codeDesc:
+      'The token category (+ optional capability byte) of output `i`. Empty bytes if the output carries no tokens.',
+  },
+  'tx.outputs[].nftCommitment': {
+    code: 'bytes tx.outputs[i].nftCommitment',
+    codeDesc: 'The NFT commitment bytes of output `i`. Empty bytes if the output is not an NFT.',
+  },
+  'tx.outputs[].tokenAmount': {
+    code: 'int tx.outputs[i].tokenAmount',
+    codeDesc: 'The fungible token amount of output `i`. Zero if the output carries no fungible tokens.',
+  },
+};
+
+let MEMBERS: Data = {
+  length: {
+    code: 'int sequence.length',
+    codeDesc: 'Returns the length of a bytes, string or array sequence.',
+  },
+  split: {
+    code: '[s1, s2] sequence.split(int i)',
+    codeDesc:
+      'Splits the sequence at the specified index and returns a tuple with the two resulting sequences.',
+  },
+  reverse: {
+    code: 'any sequence.reverse()',
+    codeDesc: 'Reverses the sequence.',
+  },
+  slice: {
+    code: 'any sequence.slice(int start, int end)',
+    codeDesc: 'Returns a new sequence containing the elements from `start` to `end`.',
+  },
+};
+
 let TYPECASTS: Data = {
   int: {
     code: 'int int( v )',
@@ -123,154 +297,133 @@ let TYPECASTS: Data = {
     codeDesc: 'Converts implicit date to timestamp',
   },
   unsafe_int: {
-    code: 'unsafe_int unsafe_int( v )',
+    code: 'int unsafe_int( v )',
     codeDesc:
       'Unsafe cast to int: reinterprets the value without type enforcement at runtime. The caller is responsible for ensuring the value is a valid Script number.',
   },
   unsafe_bool: {
-    code: 'unsafe_bool unsafe_bool( v )',
+    code: 'bool unsafe_bool( v )',
     codeDesc:
       'Unsafe cast to bool: reinterprets the value without coercing to 1 / 0. The caller is responsible for ensuring the value is already a valid boolean.',
   },
   unsafe_bytes: {
-    code: 'unsafe_bytes unsafe_bytes( v )',
+    code: 'bytes unsafe_bytes( v )',
     codeDesc: 'Unsafe cast to unbounded bytes. No runtime length or type enforcement.',
   },
   unsafe_bytesN: {
-    code: 'unsafe_bytesN unsafe_bytesN( v )',
+    code: 'bytesN unsafe_bytesN( v )',
     codeDesc:
       'Unsafe cast to a bytes sequence of N bytes. Skips the runtime length check — the caller is responsible for guaranteeing the value is exactly N bytes.',
   },
   unsafe_byte: {
-    code: 'unsafe_byte unsafe_byte( v )',
+    code: 'bytes1 unsafe_byte( v )',
     codeDesc: 'Unsafe cast to a single byte. No runtime length enforcement.',
   },
 };
 
-let LANGUAGE: Data = { ...GLOBAL_FUNCTIONS, ...INSTANTIATIONS, ...STATEMENTS, ...TYPECASTS };
+let TYPES: Data = {
+  int: {
+    code: 'int',
+    codeDesc: 'Signed integer type. Encoded as a Script Number on the stack.',
+  },
+  bool: {
+    code: 'bool',
+    codeDesc: 'Boolean type. Values are `true` or `false`.',
+  },
+  string: {
+    code: 'string',
+    codeDesc: 'UTF-8 string type. Encoded as bytes on the stack.',
+  },
+  bytes: {
+    code: 'bytes',
+    codeDesc: 'Unbounded bytes sequence.',
+  },
+  bytesN: {
+    code: 'bytesN',
+    codeDesc: 'Bytes sequence of exactly N bytes.',
+  },
+  pubkey: {
+    code: 'pubkey',
+    codeDesc: 'Public key type (compressed or uncompressed bytes).',
+  },
+  sig: {
+    code: 'sig',
+    codeDesc: 'Transaction signature type. Only valid as an argument to `checkSig` / `checkMultiSig`.',
+  },
+  datasig: {
+    code: 'datasig',
+    codeDesc: 'Data signature type. Only valid as an argument to `checkDataSig`.',
+  },
+};
 
-// TODO: Add descriptions for all the completions here
+let LANGUAGE: Data = {
+  ...GLOBAL_FUNCTIONS,
+  ...INSTANTIATIONS,
+  ...STATEMENTS,
+  ...TYPECASTS,
+  ...UNITS,
+  ...INTROSPECTION,
+  ...MEMBERS,
+};
+
+/**
+ * Build a CompletionItem with `detail` / `documentation` sourced from the
+ * matching `LANGUAGE` entry (so hover and completion surface the same info).
+ */
+function member(
+  fullKey: string,
+  label: string,
+  kind: CompletionItemKind = CompletionItemKind.Field,
+): CompletionItem {
+  const entry = LANGUAGE[fullKey];
+  return {
+    label,
+    kind,
+    detail: entry?.code,
+    documentation: entry?.codeDesc,
+  };
+}
+
 let DOT_COMPLETIONS: { [key: string]: CompletionItem[] } = {
   tx: [
-    {
-      label: 'version',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'locktime',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'inputs',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'outputs',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'time',
-      kind: CompletionItemKind.Field,
-    },
+    member('tx.version', 'version'),
+    member('tx.locktime', 'locktime'),
+    member('tx.inputs', 'inputs'),
+    member('tx.outputs', 'outputs'),
+    member('tx.time', 'time'),
   ],
 
-  inputs: [
-    {
-      label: 'length',
-      kind: CompletionItemKind.Field,
-    },
-  ],
+  inputs: [member('tx.inputs.length', 'length')],
 
   inputs_indexed: [
-    {
-      label: 'value',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'lockingBytecode',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'outpointTransactionHash',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'outpointIndex',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'unlockingBytecode',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'sequenceNumber',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'tokenCategory',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'nftCommitment',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'tokenAmount',
-      kind: CompletionItemKind.Field,
-    },
+    member('tx.inputs[].value', 'value'),
+    member('tx.inputs[].lockingBytecode', 'lockingBytecode'),
+    member('tx.inputs[].outpointTransactionHash', 'outpointTransactionHash'),
+    member('tx.inputs[].outpointIndex', 'outpointIndex'),
+    member('tx.inputs[].unlockingBytecode', 'unlockingBytecode'),
+    member('tx.inputs[].sequenceNumber', 'sequenceNumber'),
+    member('tx.inputs[].tokenCategory', 'tokenCategory'),
+    member('tx.inputs[].nftCommitment', 'nftCommitment'),
+    member('tx.inputs[].tokenAmount', 'tokenAmount'),
   ],
 
-  outputs: [
-    {
-      label: 'length',
-      kind: CompletionItemKind.Field,
-    },
-  ],
+  outputs: [member('tx.outputs.length', 'length')],
 
   outputs_indexed: [
-    {
-      label: 'value',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'lockingBytecode',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'tokenCategory',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'nftCommitment',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'tokenAmount',
-      kind: CompletionItemKind.Field,
-    },
+    member('tx.outputs[].value', 'value'),
+    member('tx.outputs[].lockingBytecode', 'lockingBytecode'),
+    member('tx.outputs[].tokenCategory', 'tokenCategory'),
+    member('tx.outputs[].nftCommitment', 'nftCommitment'),
+    member('tx.outputs[].tokenAmount', 'tokenAmount'),
   ],
 
   this: [
-    {
-      label: 'activeInputIndex',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'activeBytecode',
-      kind: CompletionItemKind.Field,
-    },
-    {
-      label: 'age',
-      kind: CompletionItemKind.Field,
-    }
+    member('this.activeInputIndex', 'activeInputIndex'),
+    member('this.activeBytecode', 'activeBytecode'),
+    member('this.age', 'age'),
   ],
 
-  console: [
-    {
-      label: 'log',
-      kind: CompletionItemKind.Field,
-    },
-  ],
+  console: [member('console.log', 'log', CompletionItemKind.Method)],
 };
 
-export { GLOBAL_FUNCTIONS, INSTANTIATIONS, TYPECASTS, LANGUAGE, DOT_COMPLETIONS };
+export { GLOBAL_FUNCTIONS, INSTANTIATIONS, TYPECASTS, TYPES, LANGUAGE, DOT_COMPLETIONS };

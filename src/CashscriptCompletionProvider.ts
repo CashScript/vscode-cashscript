@@ -1,6 +1,33 @@
 import * as vscode from 'vscode';
 import { Range, CompletionItem, CompletionItemKind } from 'vscode';
-import { DOT_COMPLETIONS } from './LanguageDesc';
+import { DOT_COMPLETIONS, GLOBAL_FUNCTIONS } from './LanguageDesc';
+
+const SEQUENCE_MEMBERS: CompletionItem[] = [
+  { label: 'length', kind: CompletionItemKind.Field },
+  { label: 'reverse', kind: CompletionItemKind.Method },
+  { label: 'split', kind: CompletionItemKind.Method },
+  { label: 'slice', kind: CompletionItemKind.Method },
+];
+
+function isSequenceType(type: string): boolean {
+  return type === 'bytes' || type === 'string' || /^bytes\d+$/.test(type) || type === 'byte';
+}
+
+function getCallReturnType(fn: string): string | null {
+  // Type-cast call: the "function" is a type keyword or unsafe cast.
+  const castMatch = fn.match(/^(unsafe_)?(int|bool|string|pubkey|sig|datasig|byte|bytes\d*|bytes)$/);
+  if (castMatch) {
+    const [, unsafe, baseType] = castMatch;
+    if (!unsafe) return baseType;
+    if (baseType === 'byte') return 'bytes1';
+    return baseType;
+  }
+
+  const entry = (GLOBAL_FUNCTIONS as Record<string, { code: string } | undefined>)[fn];
+  if (!entry) return null;
+  const match = entry.code.match(/^(\w+)\s+/);
+  return match ? match[1] : null;
+}
 
 export default class CashscriptCompletionProvider implements vscode.CompletionItemProvider {
   text = '';
@@ -21,6 +48,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
     this.text = document.getText() || '';
     this.offset = document.offsetAt(position) || 0;
     this.currentIndex = 0;
+    this.variableTypeMap = null;
 
     const completions: CompletionItem[] = this.getAllCompletions();
     return completions;
@@ -56,25 +84,97 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   }
 
   protected getDotCompletions(): CompletionItem[] {
-    const re = /(\w+)(\[.+\])?.$/; // EX: "tx."
     const range: Range = new Range(new vscode.Position(this.pos.line, 0), this.pos);
-    const text = this.doc.getText(range);
-    var arr, keyword;
-    if ((arr = text?.match(re))) {
-      keyword = arr[1];
-      if (arr[2]) keyword += '_indexed'; // ex. inputs[0].
-      console.log('keyword: ', keyword);
+    const lineText = this.doc.getText(range);
+    const beforeDot = lineText.replace(/\.$/, '');
 
-      return DOT_COMPLETIONS[keyword];
+    // 1. Keyword-based completions (tx, this, console, inputs, outputs)
+    const kwMatch = beforeDot.match(/(\w+)(\[.+\])?$/);
+    if (kwMatch) {
+      let keyword = kwMatch[1];
+      if (kwMatch[2]) keyword += '_indexed';
+      if (DOT_COMPLETIONS[keyword]) return DOT_COMPLETIONS[keyword];
     }
+
+    // 2. Type-based completions for bytes / string / bytesN
+    const type = this.resolveExpressionType(beforeDot);
+    if (type && isSequenceType(type)) return SEQUENCE_MEMBERS;
 
     return [];
   }
 
+  protected resolveExpressionType(textBeforeDot: string): string | null {
+    const text = textBeforeDot.trimEnd();
+    if (!text) return null;
+
+    // String literal
+    if (/"[^"]*"$/.test(text) || /'[^']*'$/.test(text)) return 'string';
+
+    // Hex literal
+    if (/\b0x[0-9a-fA-F]*$/.test(text)) return 'bytes';
+
+    // Boolean literal
+    if (/\b(true|false)$/.test(text)) return 'bool';
+
+    // Decimal literal (CashScript has no floats)
+    if (/(^|[^.\w])\d+(_\d+)*([eE]\d+)?$/.test(text)) return 'int';
+
+    // Tuple index: `expr[N]`
+    const indexMatch = text.match(/^(.*)\[[^\]]*\]$/);
+    if (indexMatch) {
+      // `split(...)[N]` returns the same kind of sequence as the receiver.
+      // Without a full parser we approximate to bytes (covers the common case).
+      const inner = indexMatch[1];
+      if (/\.split\s*\([^()]*\)$/.test(inner)) return 'bytes';
+      return null;
+    }
+
+    // Function call: `fn(...)`
+    if (text.endsWith(')')) {
+      // Naive: match a flat argument list (no nested parens). Good enough for
+      // most source code; deeper nesting falls back to `null`.
+      const callMatch = text.match(/(\w+)\s*\([^()]*\)$/);
+      if (callMatch) return getCallReturnType(callMatch[1]);
+      return null;
+    }
+
+    // Cast: `type(...)` — already handled by the function-call branch above
+    // because types like `bytes` / `int` are in neither `GLOBAL_FUNCTIONS` nor
+    // our type map; add dedicated handling.
+    // (Intentionally no-op — casts return the cast-to type, which we infer via
+    //  the member-chain case below if needed.)
+
+    // Identifier → variable
+    const idMatch = text.match(/(\w+)$/);
+    if (idMatch) {
+      return this.getVariableTypeMap()[idMatch[1]] ?? null;
+    }
+
+    return null;
+  }
+
+  protected variableTypeMap: Record<string, string> | null = null;
+
+  protected getVariableTypeMap(): Record<string, string> {
+    if (this.variableTypeMap) return this.variableTypeMap;
+    const code = stripComments(this.text);
+    const re = /\b(int|bool|string|pubkey|sig|datasig|byte|bytes\d*)\s+(?:constant\s+)?(\w+)/g;
+    const map: Record<string, string> = {};
+    for (const m of code.matchAll(re)) {
+      map[m[2]] = m[1];
+    }
+    this.variableTypeMap = map;
+    return map;
+  }
+
   protected getVarCompletions(): CompletionItem[] {
     const re = /(int|bool|string|pubkey|sig|datasig|byte|bytes|bytes[0-9]+)\s+(?:constant\s+)?(\w+)/g;
+    const codeOnly = stripComments(this.text);
     const completions: CompletionItem[] = [];
-    for (const m of this.text.matchAll(re)) {
+    const seen = new Set<string>();
+    for (const m of codeOnly.matchAll(re)) {
+      if (seen.has(m[2])) continue;
+      seen.add(m[2]);
       completions.push({
         label: m[2],
         kind: CompletionItemKind.Variable,
@@ -83,19 +183,6 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
 
     return completions;
   }
-
-  // protected getConditionalCompletions():CompletionItem[]{
-  // 	const completions:CompletionItem[] = [];
-  // 	if(!this.text.includes("contract")){
-  // 		completions.push({
-  // 			label:"contract",
-  // 			detail:"Instantiate a new Contract",
-  // 			insertText:"contract ${1:ContractName}($2) {\n\n}",
-  // 		});
-  // 	}
-
-  // 	return completions;
-  // }
 
   protected getControlCompletions(): CompletionItem[] {
     const words = ['pragma', 'cashscript', 'if', 'else', 'do', 'while', 'for'];
@@ -108,22 +195,6 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
   }
 
   protected getGlobalFunctionCompletions(): CompletionItem[] {
-    const words = [
-      'abs',
-      'min',
-      'max',
-      'within',
-      'ripemd160',
-      'sha1',
-      'sha256',
-      'hash160',
-      'hash256',
-      'checkSig',
-      'checkMultiSig',
-      'checkDataSig',
-      'require',
-    ];
-
     return [
       {
         label: 'abs',
@@ -204,13 +275,6 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
         label: 'require',
         detail:
           'require(bool expression, string debugMessage?): Puts a constraint on the `expression` failing the script execution if expression resolves to false. `debugMessage` will be present in the error log of the debug evaluation of the script. Has no effect in production.',
-        insertText: 'require',
-        // insertTextFormat:2
-      },
-      {
-        label: 'require',
-        detail:
-          'require(bool expression): Puts a constraint on the `expression` failing the script execution if expression resolves to false',
         insertText: 'require',
         // insertTextFormat:2
       },
@@ -305,4 +369,14 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
     }
     return completions;
   }
+}
+
+/**
+ * Replace comment contents with spaces so byte offsets stay aligned while
+ * removing any identifiers that live inside `//` or `/* *\/` comments.
+ */
+function stripComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
 }
