@@ -117,8 +117,15 @@ contract KitchenSink(pubkey pk) {
     }
 
     int ao = 0;
-    for (int ap = 0; ap < 3; ap = ap + 1) {
-      ao = ao + ap;
+    for (int ap = 0; ap < 3; ap++) {
+      ao += ap;
     }
+
+    // Increment / decrement and compound assignment
+    int aq = 1;
+    aq++;
+    aq--;
+    aq += 5;
+    aq -= 2;
   }
 }

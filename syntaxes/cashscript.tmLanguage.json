@@ -61,6 +61,12 @@
           "include": "#operator-shift"
         },
         {
+          "include": "#operator-increment"
+        },
+        {
+          "include": "#operator-compound-assignment"
+        },
+        {
           "include": "#operator-logic-assignment"
         },
         {
@@ -75,8 +81,16 @@
       ]
     },
     "operator-logic-assignment": {
-      "match": "(&&|\\|\\||[<>!=]=?|\\+\\+|--)",
+      "match": "(&&|\\|\\||[<>!=]=?)",
       "name": "keyword.operator.logic_assignment.cashscript"
+    },
+    "operator-increment": {
+      "match": "(\\+\\+|--)",
+      "name": "keyword.operator.increment.cashscript"
+    },
+    "operator-compound-assignment": {
+      "match": "(\\+=|-=)",
+      "name": "keyword.operator.assignment.compound.cashscript"
     },
     "operator-shift": {
       "match": "(<<|>>)",

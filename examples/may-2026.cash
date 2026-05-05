@@ -5,6 +5,7 @@
 // - bitshift operators (<< / >>), arithmetic shift, invert (~)
 // - bytes => bytesX padding cast removed (use toPaddedBytes instead)
 // - boolean int coercion in int => bool cast
+// - increment / decrement (++ / --) and compound assignment (+= / -=)
 
 pragma cashscript ^0.13.0;
 
@@ -14,20 +15,27 @@ contract Updates2026() {
     int i = 0;
     do {
       console.log(i);
-      i = i + 1;
+      i++;
     } while (i < 3);
 
     // while loop
     int j = 0;
     while (j < n) {
-      j = j + 1;
+      j++;
     }
 
     // for loop
     int sum = 0;
-    for (int k = 0; k < n; k = k + 1) {
-      sum = sum + k;
+    for (int k = 0; k < n; k++) {
+      sum += k;
     }
+
+    // Increment / decrement and compound assignment
+    int x = 1;
+    x++;
+    x--;
+    x += 4;
+    x -= 2;
 
     // toPaddedBytes replaces the old `bytes(value, size)` padding cast
     bytes padded = toPaddedBytes(1234, 8);
