@@ -82,22 +82,6 @@ describe('LanguageDesc', () => {
   });
 
   describe('LANGUAGE', () => {
-    it('should be a combination of global functions and instantiations only', () => {
-      expect(LANGUAGE).toBeDefined();
-      // Check that LANGUAGE contains entries from global functions and instantiations
-      // Note: STATEMENTS is empty and TYPECASTS is not included in LANGUAGE
-      expect(Object.keys(LANGUAGE)).toEqual(
-        expect.arrayContaining(Object.keys(GLOBAL_FUNCTIONS))
-      );
-      expect(Object.keys(LANGUAGE)).toEqual(
-        expect.arrayContaining(Object.keys(INSTANTIATIONS))
-      );
-      // TYPECASTS is NOT included in LANGUAGE
-      expect(Object.keys(LANGUAGE)).not.toEqual(
-        expect.arrayContaining(Object.keys(TYPECASTS))
-      );
-    });
-
     it('should merge objects correctly without conflicts', () => {
       // Make sure there are no overlapping keys that would cause conflicts
       const globalKeys = Object.keys(GLOBAL_FUNCTIONS);

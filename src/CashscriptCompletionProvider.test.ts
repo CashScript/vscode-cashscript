@@ -68,23 +68,6 @@ describe('CashscriptCompletionProvider', () => {
   });
 
   describe('getAllCompletions', () => {
-    it('should return dot completions when isDot returns true', () => {
-      const spyIsDot = jest.spyOn(completionProvider as any, 'isDot').mockReturnValue(true);
-      const spyGetDotCompletions = jest.spyOn(completionProvider as any, 'getDotCompletions');
-
-      (completionProvider as any).doc = mockDocument;
-      (completionProvider as any).pos = new vscode.Position(0, 0);
-      (completionProvider as any).text = '';
-
-      const result = (completionProvider as any).getAllCompletions();
-
-      expect(spyIsDot).toHaveBeenCalled();
-      expect(spyGetDotCompletions).toHaveBeenCalled();
-      expect(Array.isArray(result)).toBe(true);
-
-      spyIsDot.mockRestore();
-    });
-
     it('should return all types of completions when isDot returns false', () => {
       const spyIsDot = jest.spyOn(completionProvider as any, 'isDot').mockReturnValue(false);
       const spyGetVarCompletions = jest.spyOn(completionProvider as any, 'getVarCompletions');

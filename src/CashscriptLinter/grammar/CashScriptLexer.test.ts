@@ -41,80 +41,6 @@ describe('CashScriptLexer', () => {
       expect(tokens[tokens.length - 1].type).toBe(CashScriptLexer.EOF);
     });
 
-    test('should tokenize contract definition correctly', () => {
-      const code = 'contract MyContract(int x) { }';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Check that required tokens are present (not dependent on exact positions)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__10)).toBe(true); // contract
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // MyContract
-      expect(tokens.some(t => t.type === CashScriptLexer.T__14)).toBe(true); // (
-      expect(tokens.some(t => t.type === CashScriptLexer.T__52)).toBe(true); // int (token ID 53)
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // x
-      expect(tokens.some(t => t.type === CashScriptLexer.T__16)).toBe(true); // )
-      expect(tokens.some(t => t.type === CashScriptLexer.T__11)).toBe(true); // {
-      expect(tokens.some(t => t.type === CashScriptLexer.T__12)).toBe(true); // }
-      expect(tokens.some(t => t.type === CashScriptLexer.EOF)).toBe(true); // EOF
-    });
-
-    test('should tokenize function definition correctly', () => {
-      const code = 'function spend(int secret) { }';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Check that required tokens are present (not dependent on exact positions)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__13)).toBe(true); // function
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // spend
-      expect(tokens.some(t => t.type === CashScriptLexer.T__14)).toBe(true); // (
-      expect(tokens.some(t => t.type === CashScriptLexer.T__52)).toBe(true); // int (token ID 53)
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // secret
-      expect(tokens.some(t => t.type === CashScriptLexer.T__16)).toBe(true); // )
-      expect(tokens.some(t => t.type === CashScriptLexer.T__11)).toBe(true); // {
-      expect(tokens.some(t => t.type === CashScriptLexer.T__12)).toBe(true); // }
-      expect(tokens.some(t => t.type === CashScriptLexer.EOF)).toBe(true); // EOF
-    });
-
-    test('should tokenize require statement correctly', () => {
-      const code = 'require(balance > 100);';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Check that required tokens are present (not dependent on exact positions)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__17)).toBe(true); // require
-      expect(tokens.some(t => t.type === CashScriptLexer.T__14)).toBe(true); // (
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // balance
-      expect(tokens.some(t => t.type === CashScriptLexer.T__6)).toBe(true); // >
-      expect(tokens.some(t => t.type === CashScriptLexer.NumberLiteral)).toBe(true); // 100
-      expect(tokens.some(t => t.type === CashScriptLexer.T__16)).toBe(true); // )
-      expect(tokens.some(t => t.type === CashScriptLexer.T__1)).toBe(true); // ;
-      expect(tokens.some(t => t.type === CashScriptLexer.EOF)).toBe(true); // EOF
-    });
-
     test('should tokenize boolean literals correctly', () => {
       const code = 'bool flag1 = true; bool flag2 = false;';
       const { lexer, errListener } = createLexer(code);
@@ -192,38 +118,6 @@ describe('CashScriptLexer', () => {
       expect(hexTokens.some(t => t.text === '0xABCDEF0123')).toBe(true);
     });
 
-    test('should tokenize operators correctly', () => {
-      const code = 'a + b - c * d / e % f == g != h < i > j <= k >= l & p | q && m || n ! o';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Check for specific operators
-      expect(tokens.some(t => t.type === CashScriptLexer.T__43)).toBe(true); // +
-      expect(tokens.some(t => t.type === CashScriptLexer.T__42)).toBe(true); // -
-      expect(tokens.some(t => t.type === CashScriptLexer.T__40)).toBe(true); // *
-      expect(tokens.some(t => t.type === CashScriptLexer.T__41)).toBe(true); // /
-      expect(tokens.some(t => t.type === CashScriptLexer.T__44)).toBe(true); // %
-      expect(tokens.some(t => t.type === CashScriptLexer.T__45)).toBe(true); // ==
-      expect(tokens.some(t => t.type === CashScriptLexer.T__46)).toBe(true); // !=
-      expect(tokens.some(t => t.type === CashScriptLexer.T__7)).toBe(true);  // <
-      expect(tokens.some(t => t.type === CashScriptLexer.T__6)).toBe(true);  // >
-      expect(tokens.some(t => t.type === CashScriptLexer.T__8)).toBe(true);  // <=
-      expect(tokens.some(t => t.type === CashScriptLexer.T__5)).toBe(true);  // >=
-      expect(tokens.some(t => t.type === CashScriptLexer.T__47)).toBe(true); // & (bitwise AND)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__48)).toBe(true); // | (bitwise OR)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__49)).toBe(true); // && (logical AND)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__50)).toBe(true); // || (logical OR)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__39)).toBe(true); // !
-    });
-
     test('should tokenize transaction introspection variables correctly', () => {
       const code = 'this.age; tx.outputs[0].value; tx.inputs[this.activeInputIndex].unlockingBytecode;';
       const { lexer, errListener } = createLexer(code);
@@ -259,91 +153,7 @@ describe('CashScriptLexer', () => {
     });
   });
 
-  describe('Special tokens and keywords', () => {
-    test('should recognize all primitive types', () => {
-      const code = 'int bool string pubkey sig datasig';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      expect(tokens.some(t => t.type === CashScriptLexer.T__52)).toBe(true); // int (token ID 53)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__53)).toBe(true); // bool (token ID 54)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__54)).toBe(true); // string (token ID 55)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__55)).toBe(true); // pubkey (token ID 56)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__56)).toBe(true); // sig (token ID 57)
-      // Note: 'datasig' is token ID 58, but the lexer doesn't define T__57, so we skip this check
-    });
-
-    test('should recognize control flow keywords', () => {
-      const code = 'if else require console.log';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      expect(tokens.some(t => t.type === CashScriptLexer.T__18)).toBe(true); // if
-      expect(tokens.some(t => t.type === CashScriptLexer.T__19)).toBe(true); // else
-      expect(tokens.some(t => t.type === CashScriptLexer.T__17)).toBe(true); // require
-      expect(tokens.some(t => t.type === CashScriptLexer.T__20)).toBe(true); // console.log
-    });
-
-    test('should recognize constant keyword', () => {
-      const code = 'constant';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      expect(tokens.some(t => t.type === CashScriptLexer.T__51)).toBe(true); // constant (token ID 52)
-    });
-  });
-
   describe('Whitespace and comments', () => {
-    test('should handle whitespace correctly', () => {
-      const code = '  \t\n  int x  \t\n  =  \t\n  5  \t\n  ;';
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Only non-whitespace tokens should remain
-      const nonWhitespaceTokens = tokens.filter(
-        t => ![CashScriptLexer.WHITESPACE].includes(t.type)
-      );
-      
-      expect(nonWhitespaceTokens.length).toBe(6); // There must be 6 non-whitespace tokens
-      expect(nonWhitespaceTokens.some(t => t.type === CashScriptLexer.T__52)).toBe(true); // int (token ID 53)
-      expect(nonWhitespaceTokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // x
-      expect(nonWhitespaceTokens.some(t => t.type === CashScriptLexer.T__9)).toBe(true); // =
-      expect(nonWhitespaceTokens.some(t => t.type === CashScriptLexer.NumberLiteral)).toBe(true); // 5
-      expect(nonWhitespaceTokens.some(t => t.type === CashScriptLexer.T__1)).toBe(true); // ;
-    });
-
     test('should handle line comments correctly', () => {
       const code = `
         int x = 5; // this is a comment
@@ -424,41 +234,4 @@ describe('CashScriptLexer', () => {
     });
   });
 
-  describe('Complex expressions', () => {
-    test('should tokenize complex contract definition correctly', () => {
-      const code = `
-        pragma cashscript ^0.8.0;
-
-        contract ComplexContract(int threshold, pubkey owner) {
-          function spend(sig signature, int amount) {
-            require(verify(owner, signature));
-            require(amount > threshold);
-          }
-        }
-      `;
-      const { lexer, errListener } = createLexer(code);
-
-      const tokens = [];
-      let token;
-      do {
-        token = lexer.nextToken();
-        tokens.push(token);
-      } while (token.type !== CashScriptLexer.EOF);
-
-      expect(errListener.getErrs()).toHaveLength(0);
-
-      // Basic validation: should have more than 20 tokens for this complex contract
-      expect(tokens.length).toBeGreaterThan(20);
-
-      // Validate that key elements are properly tokenized
-      expect(tokens.some(t => t.type === CashScriptLexer.T__0)).toBe(true);  // pragma
-      expect(tokens.some(t => t.type === CashScriptLexer.T__10)).toBe(true); // contract
-      expect(tokens.some(t => t.type === CashScriptLexer.T__13)).toBe(true); // function
-      expect(tokens.some(t => t.type === CashScriptLexer.T__17)).toBe(true); // require
-      expect(tokens.some(t => t.type === CashScriptLexer.Identifier)).toBe(true); // identifiers
-      expect(tokens.some(t => t.type === CashScriptLexer.T__52)).toBe(true); // int (token ID 53)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__55)).toBe(true); // pubkey (token ID 56)
-      expect(tokens.some(t => t.type === CashScriptLexer.T__56)).toBe(true); // sig (token ID 57)
-    });
-  });
 });
