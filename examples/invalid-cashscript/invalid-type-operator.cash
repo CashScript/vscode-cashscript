@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract EmptyArrayAssignment() {
+  function spend() {
+    // Invalid expressions
+    sig cc = sig(0xabcd) | sig(0xabcd);
+    require(cc == 0x);
+  }
+}

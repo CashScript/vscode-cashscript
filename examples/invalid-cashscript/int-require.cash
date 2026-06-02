@@ -1,0 +1,8 @@
+pragma cashscript >=0.7.0;
+
+contract IntRequire() {
+  function spend() {
+    // Incorrect typecheck in require
+    require(max(1, 2));
+  }
+}

@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract Redeclaration() {
+  function spend() {
+    // Redeclaration
+    int a = 12;
+    int a = 24;
+  }
+}

@@ -50,7 +50,7 @@ contract Updates2026() {
     // Unsafe casts: skip runtime type enforcement (use with care).
     // These are casts only — variables still use the regular int/bool/bytes types.
     int a = unsafe_int(0x01);
-    bool b = unsafe_bool(0x01);
+    bool b = unsafe_bool(0x01); // Note: this is supposed to be a squiggly line because it is an unused variable
     bytes c = unsafe_bytes(0xabcd);
     bytes1 d = unsafe_byte(0xab);
     require(a == 1);

@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract InvalidTypecast() {
+  function spend() {
+    // Invalid typecasting
+    datasig ds = datasig(800);
+    require(ds != 0x);
+  }
+}

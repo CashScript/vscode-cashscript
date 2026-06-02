@@ -33,8 +33,8 @@ contract KitchenSink(pubkey pk) {
 
     // Bytes/string properties / methods
     bytes q, bytes r = 0xabcd.split(1);
-    bytes s = 0xabcd.split(1)[0];
-    int t = s.length + 1;
+    bytes ss = 0xabcd.split(1)[0];
+    int t = ss.length + 1;
     string u = "Hello World".reverse();
 
     // Global function calls
@@ -76,21 +76,21 @@ contract KitchenSink(pubkey pk) {
     string ab = "Hello" + " " + "World";
     bool ac = "Hello" == "Hello" && "Hello" != "World";
     bytes ad = 0xab + 0xcd & 0xabcd | 0x1234 ^ 0x0000;
-    bool ac = 0xabcd == 0xabcd && 0xabcd != 0x1234;
+    bool ae = 0xabcd == 0xabcd && 0xabcd != 0x1234;
 
     // Bitshift, arithmetic shift, and invert operators
-    int ae = (1 << 4) >> 1;
-    int af = ~ae;
+    int af = (1 << 4) >> 1;
+    int ag = ~ae;
 
     // toPaddedBytes replaces the removed `bytes(value, size)` padding cast
-    bytes ag = toPaddedBytes(1234, 8);
+    bytes ah = toPaddedBytes(1234, 8);
 
     // Unsafe casts: skip runtime type enforcement
-    int ah = unsafe_int(0x01);
-    bool ai = unsafe_bool(0x01);
-    bytes aj = unsafe_bytes(0xabcd);
-    bytes1 ak = unsafe_byte(0xab);
-    bytes20 al = unsafe_bytes20(0x000102030405060708090a0b0c0d0e0f10111213);
+    int ai = unsafe_int(0x01);
+    bool aj = unsafe_bool(0x01);
+    bytes ak = unsafe_bytes(0xabcd);
+    bytes1 al = unsafe_byte(0xab);
+    bytes20 am = unsafe_bytes20(0x000102030405060708090a0b0c0d0e0f10111213);
 
     // Debug functionality
     require(1 == 1, "1 should equal 1");
@@ -106,26 +106,26 @@ contract KitchenSink(pubkey pk) {
     }
 
     // Loops
-    int am = 0;
-    do {
-      am = am + 1;
-    } while (am < 3);
-
     int an = 0;
-    while (an < 3) {
+    do {
       an = an + 1;
-    }
+    } while (an < 3);
 
     int ao = 0;
-    for (int ap = 0; ap < 3; ap++) {
-      ao += ap;
+    while (ao < 3) {
+      ao = ao + 1;
+    }
+
+    int ap = 0;
+    for (int aq = 0; aq < 3; aq++) {
+      ap += aq;
     }
 
     // Increment / decrement and compound assignment
-    int aq = 1;
-    aq++;
-    aq--;
-    aq += 5;
-    aq -= 2;
+    int ar = 1;
+    ar++;
+    ar--;
+    ar += 5;
+    ar -= 2;
   }
 }

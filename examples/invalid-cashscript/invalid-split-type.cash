@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract InvalidSplitType() {
+  function spend() {
+    // Invalid splitting / indexing syntax
+    bytes q, bytes r = 0xabcd.split(0x1562)[1];
+    require(q == r);
+  }
+}

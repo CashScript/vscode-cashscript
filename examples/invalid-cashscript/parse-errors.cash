@@ -1,0 +1,25 @@
+pragma invalid >=0.7.0;
+
+contract ParseErrors() {
+  function spend(int value) {
+    // Use of statements as expressions
+    int x = require(1 == 2);
+    int y = console.log("hello world");
+
+    // Incorrect usage of tx.time / this.age
+    require(tx.time < 100);
+    require(this.age < 100);
+
+    // Invalid function args
+    bytes p = bytes(100, "string");
+
+    int u = 0xabcd.helloWorld;
+
+    // Invalid tx properties
+    require(tx.outputs[0].unlockingBytecode == 0xabcd);
+    require(tx.hello[0].unlockingBytecode == 0xabcd);
+
+    // Invalid expressions
+    int z = 5 ** 2;
+  }
+}

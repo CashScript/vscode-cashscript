@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract EmptyArrayAssignment() {
+  function spend() {
+    // Assignment of empty array
+    int x = [];
+    require(x > 1);
+  }
+}

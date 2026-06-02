@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract StringIndex() {
+  function spend() {
+    // Invalid indexing syntax
+    bytes b = 'string'[40];
+    require(b == 0x);
+  }
+}

@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract EmptyArrayAssignment() {
+  function spend(sig s, pubkey pk) {
+    // Invalid function calls
+    require(checkMultiSig([s, s], [pk, pk], 1));
+
+  }
+}

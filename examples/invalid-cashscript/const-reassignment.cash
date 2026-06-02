@@ -1,0 +1,9 @@
+pragma cashscript >=0.7.0;
+
+contract ConstReassignment() {
+  function spend() {
+    // Reassign a constant
+    int constant const = 10;
+    const = 12;
+  }
+}
