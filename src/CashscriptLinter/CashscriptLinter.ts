@@ -1,25 +1,61 @@
-import { CharStream, CommonTokenStream } from 'antlr4';
-import { Diagnostic } from 'vscode-languageserver';
-import { SafeErrorListener, SafeErrorStrategy } from './ErrorListeners';
-import CashScriptLexer from './grammar/CashScriptLexer';
-import CashScriptParser from './grammar/CashScriptParser';
+import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
+import { SafeErrorListener } from './ErrorListeners';
+import type { CashScriptError, Point } from 'cashc';
 
+type CashcModule = Pick<typeof import('cashc'), 'compileString'>;
+type SourcePoint = Pick<Point, 'line' | 'column'>;
+
+// Preserve import() in CommonJS output so VS Code can load cashc's ESM package.
+// Note that VS Code extensions *do* support ESM (since April 2025 / v1.100),
+// but Cursor does not support this yet, and we do want to support Cursor.
+const importCashc = new Function('return import("cashc")') as () => Promise<CashcModule>;
+let cashcModule: Promise<CashcModule>;
+
+async function loadCashc(): Promise<CashcModule> {
+  cashcModule ??= importCashc();
+  return cashcModule;
+}
 export default class CashscriptLinter {
-  static getDiagnostics(code: string): Diagnostic[] {
-    const errListener = new SafeErrorListener();
+  static async getDiagnostics(code: string): Promise<Diagnostic[]> {
+    const errorListener = new SafeErrorListener();
 
-    const inputStream = new CharStream(code);
-    const lexer = new CashScriptLexer(inputStream);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener(errListener);
+    try {
+      const { compileString } = await loadCashc();
+      compileString(code, { errorListener });
+    } catch (error) {
+      if (errorListener.getErrs().length === 0) {
+        return [diagnosticFromCompilerError(error)];
+      }
+    }
 
-    const tokenStream = new CommonTokenStream(lexer);
-    const parser = new CashScriptParser(tokenStream);
-    parser._errHandler = new SafeErrorStrategy();
-    parser.removeErrorListeners();
-    parser.addErrorListener(errListener);
-    const parseTree = parser.sourceFile();
-
-    return errListener.getErrs();
+    return errorListener.getErrs();
   }
+}
+
+function diagnosticFromCompilerError(error: unknown): Diagnostic {
+  const originalMessage = error instanceof Error ? error.message : String(error);
+  const message = withoutLocationSuffix(originalMessage);
+  const location = (error as Partial<CashScriptError> | null | undefined)?.node?.location;
+  const messageLocation = originalMessage.match(/\bat Line (\d+), Column (\d+)$/);
+  const fallbackPoint = messageLocation
+    ? { line: Number(messageLocation[1]), column: Number(messageLocation[2]) }
+    : { line: 1, column: 0 };
+
+  const range: Range = {
+    start: pointToPosition(location?.start ?? fallbackPoint),
+    end: pointToPosition(location?.end ?? fallbackPoint),
+  };
+
+  return Diagnostic.create(range, message, DiagnosticSeverity.Error);
+}
+
+function pointToPosition(point: SourcePoint): Range['start'] {
+  return {
+    line: Math.max(point.line - 1, 0),
+    character: Math.max(point.column, 0),
+  };
+}
+
+function withoutLocationSuffix(message: string): string {
+  return message.replace(/\s+at Line \d+, Column \d+$/, '');
 }

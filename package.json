@@ -75,7 +75,7 @@
     ]
   },
   "dependencies": {
-    "antlr4": "^4.13.2",
+    "cashc": "file:../cashscript/packages/cashc",
     "vsce": "^2.15.0",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",

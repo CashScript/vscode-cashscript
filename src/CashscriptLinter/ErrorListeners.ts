@@ -1,26 +1,22 @@
-import { ErrorListener, DefaultErrorStrategy, Parser, RecognitionException, Recognizer } from 'antlr4';
 import { Diagnostic, DiagnosticSeverity, Range } from 'vscode-languageserver';
 
-export class SafeErrorListener extends ErrorListener<any> {
-  static readonly INSTANCE = new SafeErrorListener();
-
-  errs: Diagnostic[] = [];
+export class SafeErrorListener {
+  private errs: Diagnostic[] = [];
 
   getErrs(): Diagnostic[] {
     return this.errs;
   }
 
   syntaxError<T>(
-    recognizer: Recognizer<T>,
-    offendingSymbol: T,
+    _recognizer: unknown,
+    _offendingSymbol: T,
     line: number,
     charPositionInLine: number,
     message: string,
-    e?: RecognitionException,
+    _e?: unknown,
   ): void {
     const capitalisedMessage = message.charAt(0).toUpperCase() + message.slice(1);
 
-    //console.log(capitalisedMessage);
     const range: Range = {
       start: {
         line: line - 1,
@@ -34,11 +30,5 @@ export class SafeErrorListener extends ErrorListener<any> {
 
     const diag = Diagnostic.create(range, capitalisedMessage, DiagnosticSeverity.Error);
     this.errs.push(diag);
-  }
-}
-
-export class SafeErrorStrategy extends DefaultErrorStrategy {
-  sync(recognizer: Parser): void {
-    return;
   }
 }

@@ -43,7 +43,7 @@ documents.onDidChangeContent((change) => {
  */
 async function validateDocument(textDocument: TextDocument): Promise<void> {
   const code = textDocument.getText();
-  const diagnostics = CashscriptLinter.getDiagnostics(code);
+  const diagnostics = await CashscriptLinter.getDiagnostics(code);
   connection.sendDiagnostics({
     uri: textDocument.uri,
     diagnostics,

@@ -5,6 +5,22 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@bitauth/libauth@npm:^3.1.0-next.8":
+  version: 3.1.0-next.8
+  resolution: "@bitauth/libauth@npm:3.1.0-next.8"
+  checksum: 10c0/2f984ff30350502418dc08727963ff28505ead5b72a9ebe330bddf8b7b12a5983708b82f37713949a07e5ec26937f1405683b5402e327ea867e85288af43385c
+  languageName: node
+  linkType: hard
+
+"@cashscript/utils@npm:^0.13.0":
+  version: 0.13.0
+  resolution: "@cashscript/utils@npm:0.13.0"
+  dependencies:
+    "@bitauth/libauth": "npm:^3.1.0-next.8"
+  checksum: 10c0/1ce23b29d5ede012023130029b389a00d81a1e4d8531520e880482c55727c141e1415c2f92fafb3c7b5604f6994d04faf6a06cd3201d5ab4813af68eed29b930
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -312,13 +328,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cashc@file:../cashscript/packages/cashc::locator=cashscript-vscode%40workspace%3A.":
+  version: 0.13.0
+  resolution: "cashc@file:../cashscript/packages/cashc#../cashscript/packages/cashc::hash=acb227&locator=cashscript-vscode%40workspace%3A."
+  dependencies:
+    "@bitauth/libauth": "npm:^3.1.0-next.8"
+    "@cashscript/utils": "npm:^0.13.0"
+    antlr4: "npm:^4.13.2"
+    commander: "npm:^14.0.0"
+    semver: "npm:^7.7.2"
+  bin:
+    cashc: dist/cashc-cli.js
+  checksum: 10c0/a5a564f3f0f483b8e25741d3d940e4e8d398d27c6056f755a41712e7df05784d425959c9a546178b232ef454657e08a176ab7759ac3bb98bb0bf4a94e31b726f
+  languageName: node
+  linkType: hard
+
 "cashscript-vscode@workspace:.":
   version: 0.0.0-use.local
   resolution: "cashscript-vscode@workspace:."
   dependencies:
     "@types/node": "npm:^18.7.23"
     "@types/vscode": "npm:^1.83.0"
-    antlr4: "npm:^4.13.2"
+    cashc: "file:../cashscript/packages/cashc"
     esbuild: "npm:^0.12.29"
     prettier: "npm:^3.4.2"
     typescript: "npm:^5.7.3"
@@ -426,6 +457,13 @@ __metadata:
   version: 1.1.4
   resolution: "color-name@npm:1.1.4"
   checksum: 10c0/a1a3f914156960902f46f7f56bc62effc6c94e84b2cae157a526b1c1f74b677a47ec602bf68a61abfa2b42d15b7c5651c6dbe72a43af720bc588dff885b10f95
+  languageName: node
+  linkType: hard
+
+"commander@npm:^14.0.0":
+  version: 14.0.3
+  resolution: "commander@npm:14.0.3"
+  checksum: 10c0/755652564bbf56ff2ff083313912b326450d3f8d8c85f4b71416539c9a05c3c67dbd206821ca72635bf6b160e2afdefcb458e86b317827d5cb333b69ce7f1a24
   languageName: node
   linkType: hard
 
@@ -1674,6 +1712,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/88f33e148b210c153873cb08cfe1e281d518aaa9a666d4d148add6560db5cd3c582f3a08ccb91f38d5f379ead256da9931234ed122057f40bb5766e65e58adaf
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.7.2":
+  version: 7.8.1
+  resolution: "semver@npm:7.8.1"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/92d6871d6347e1f99d0ba396a70f2545ccf2a032cda3d378fa0699edf7506b5c6d266aed55c8b88e72bd91a30d2351e4f39db479375374430fcdc4b58f4e3c1a
   languageName: node
   linkType: hard
 
