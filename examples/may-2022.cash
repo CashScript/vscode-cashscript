@@ -1,6 +1,7 @@
 contract P2PKH() {
     function spend() {
-        bytes2 left, bytes2 right = 0x123456.split(2);
+        bytes2 left, bytes2 right = 0x12345678.split(2);
+        int i = 1;
         int constant c = 5;
         require(left == right);
         require(c * 2 == 2);
@@ -13,7 +14,7 @@ contract P2PKH() {
         require(tx.inputs[i].value == 1);
         require(tx.inputs[i].lockingBytecode == 0x);
         require(tx.inputs[i].unlockingBytecode == 0x);
-        require(tx.inputs[i].outpointTransactionHash == 0x);
+        require(tx.inputs[i].outpointTransactionHash == toPaddedBytes(0, 32));
         require(tx.inputs[i].outpointIndex == 1);
         require(tx.inputs[i].sequenceNumber == 1);
 

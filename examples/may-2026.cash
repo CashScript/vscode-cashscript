@@ -44,15 +44,18 @@ contract Updates2026() {
     // Bitshift, arithmetic shift and invert operators
     int shifted = 1 << 4;
     int right = 64 >> 2;
-    int inverted = ~5;
-    require(shifted == 16 && right == 16 && inverted == -6);
+    bytes1 inverted = ~0x01;
+    require(shifted == 16 && right == 16 && inverted == 0xfe);
 
     // Unsafe casts: skip runtime type enforcement (use with care).
     // These are casts only — variables still use the regular int/bool/bytes types.
     int a = unsafe_int(0x01);
-    bool b = unsafe_bool(0x01); // Note: this is supposed to be a squiggly line because it is an unused variable
+    bool b = unsafe_bool(a);
     bytes c = unsafe_bytes(0xabcd);
     bytes1 d = unsafe_byte(0xab);
+
     require(a == 1);
+    require(b);
+    require(c == d);
   }
 }

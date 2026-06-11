@@ -1,3 +1,5 @@
+pragma cashscript ^0.12.0;
+
 contract P2PKH() {
     function spend() {
         require(tx.inputs[0].tokenCategory == bytes32(0));

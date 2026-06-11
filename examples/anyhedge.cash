@@ -1,51 +1,53 @@
-pragma cashscript ^0.7.0;
+pragma cashscript ^0.9.2;
 
-// AnyHedge contract allows Hedge and Long to enter into an agreement where Hedge reduces their exposure
-// to price volatility, measured in UNITS/BCH, and Long increases their exposure to the same volatility.
-// AnyHedge also has a safety feature where Hedge and Long can exit the contract at any time through mutual agreement.
-contract AnyHedge_v0_11(
+// The AnyHedge smart contract allows two parties to enter a BCH settled forward contract.
+// The Short side pays the Long side when the price increases and vice versa.
+// The contract settles on a predefined maturity date or when a liquidation boundary is hit.
+// AnyHedge also has a safety feature where Short and Long can exit the contract at any time through mutual agreement.
+contract AnyHedge_v0_12(
     //        Mutual redemption
-    //        Hedge and Long public keys. Required to verify the mutual redemption transaction signatures.
-    pubkey    hedgeMutualRedeemPublicKey,   // 33 B
-    pubkey    longMutualRedeemPublicKey,    // 33 B
-    int       enableMutualRedemption,       // 1 B
+    //        Short and Long public keys. Required to verify the mutual redemption transaction signatures.
+    pubkey    shortMutualRedeemPublicKey,  // 33 B
+    pubkey    longMutualRedeemPublicKey,   // 33 B
+    int       enableMutualRedemption,      // 1 B
 
-    //        Arbitrary output lock scripts for Hedge and Long.
+    //        Arbitrary output lock scripts for Short and Long.
     //        AnyHedge can payout to p2pkh, p2sh or any valid output.
     //        E.g. p2pkh: pushLockScript + (opDup + opHash160 + pushHash + longPKH + opEqualVerify + opCheckSig)
-    //        E.g. p2sh: pushLockScript + (opHash160 + pushHash + hedgeScriptHash + opEqual)
+    //        E.g. p2sh: pushLockScript + (opHash160 + pushHash + shortScriptHash + opEqual)
     //        An invalid lock script will make the contract un-redeemable so both must be validated carefully.
-    bytes     hedgeLockScript,              // 26 B for p2pkh, depends on script type
-    bytes     longLockScript,               // 26 B for p2pkh, depends on script type
+    bytes     shortLockScript,  // 26 B for p2pkh, depends on script type
+    bytes     longLockScript,   // 26 B for p2pkh, depends on script type
 
     //        Oracle
-    pubkey    oraclePublicKey,              // 33 B, verifies message from oracle
+    pubkey    oraclePublicKey,  // 33 B, verifies message from oracle
 
     //        Money
     //        Note: All int types below must be minimally encoded.
-    int       nominalUnitsXSatsPerBch,      // 1~8 B, hedge payout in Units, scaled by 1e8(sats/BCH)
-    int       payoutSats,                   // 1~8 B, total payout sats, miner fee not included
-    int       lowLiquidationPrice,          // 1~4 B, clamps price data to ensure valid payouts
-    int       highLiquidationPrice,         // 1~4 B, clamps price data to ensure valid payouts
+    int       nominalUnitsXSatsPerBch,               // 1~8 B, nominal hedge value in Units, scaled by 1e8(sats/BCH)
+    int       satsForNominalUnitsAtHighLiquidation,  // 1~8 B, cost sats for the nominal hedge at high liquidation
+    int       payoutSats,                            // 1~8 B, total payout sats, miner fee not included
+    int       lowLiquidationPrice,                   // 1~4 B, clamps price data to ensure valid payouts
+    int       highLiquidationPrice,                  // 1~4 B, clamps price data to ensure valid payouts
 
     //        Time
-    int       startTimestamp,               // 4 B, earliest redemption timestamp under liquidation conditions
-    int       maturityTimestamp,            // 4 B, required redemption timestamp under maturity conditions
+    int       startTimestamp,     // 4 B, earliest redemption timestamp under liquidation conditions
+    int       maturityTimestamp,  // 4 B, required redemption timestamp under maturity conditions
 ) {
 
-    // Mutual redemption is a safety feature where Hedge and Long can agree to exit the contract at any time.
+    // Mutual redemption is a safety feature where Short and Long can agree to exit the contract at any time.
     // It can be useful for example in the case of a funding error.
-    // Note: This controls all contract inputs, such as fees, even if Hedge and Long did not provide them.
+    // Note: This controls all contract inputs, such as fees, even if Short and Long did not provide them.
     function mutualRedeem(
-        //    Hedge and Long signatures of the mutual redemption transaction.
-        sig   hedgeMutualRedeemSignature,   // 65 B
+        //    Short and Long signatures of the mutual redemption transaction.
+        sig   shortMutualRedeemSignature,   // 65 B
         sig   longMutualRedeemSignature     // 65 B
     ) {
         // Check that mutual redemption is enabled
         require(bool(enableMutualRedemption));
 
-        // Verify that both Hedge and Long agree to the details of this transaction.
-        require(checkSig(hedgeMutualRedeemSignature, hedgeMutualRedeemPublicKey));
+        // Verify that both Short and Long agree to the details of this transaction.
+        require(checkSig(shortMutualRedeemSignature, shortMutualRedeemPublicKey));
         require(checkSig(longMutualRedeemSignature, longMutualRedeemPublicKey));
     }
 
@@ -132,14 +134,19 @@ contract AnyHedge_v0_11(
         // We survived the oracle validation gauntlet so redeem the contract with the clamped price.
 
         // Calculate payout sats, including dust safety
-        int DUST = 546;
-        int hedgeSats = max(DUST, nominalUnitsXSatsPerBch / clampedPrice);
-        int longSats = max(DUST, payoutSats - hedgeSats);
+        // The calculation for shortSats is the key calculation of AnyHedge. It now has two parts:
+        // 1. Calculation of (nominalUnitsXSatsPerBch / clampedPrice) is sats for the nominal hedge at
+        //    the end price, representing the "pure hedge" (short leverage = 1).
+        // 2. Subtraction of satsForNominalUnitsAtHighLiquidation enables leveraged shorts. When the value
+        //    is 0, it represents an exact equivalent to the "pure hedge".
+        int DUST = 1332;
+        int shortSats = max(DUST, (nominalUnitsXSatsPerBch / clampedPrice) - satsForNominalUnitsAtHighLiquidation);
+        int longSats = max(DUST, payoutSats - shortSats);
 
-        // Check that the hedge output + long output match this transaction's outputs
+        // Check that the short output + long output match this transaction's outputs
         require(tx.outputs.length == 2);
-        require(tx.outputs[0].value == hedgeSats);
-        require(tx.outputs[0].lockingBytecode == hedgeLockScript);
+        require(tx.outputs[0].value == shortSats);
+        require(tx.outputs[0].lockingBytecode == shortLockScript);
         require(tx.outputs[1].value == longSats);
         require(tx.outputs[1].lockingBytecode == longLockScript);
     }

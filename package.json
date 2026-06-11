@@ -75,7 +75,9 @@
     ]
   },
   "dependencies": {
-    "cashc": "file:../cashscript/packages/cashc",
+    "cashc": "^0.13.1",
+    "cashc-012": "npm:cashc@^0.12.2",
+    "semver": "^7.7.2",
     "vsce": "^2.15.0",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",
@@ -83,6 +85,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.7.23",
+    "@types/semver": "^7",
     "@types/vscode": "^1.83.0",
     "esbuild": "^0.12.29",
     "prettier": "^3.4.2",
