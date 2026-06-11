@@ -2,6 +2,11 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
+## v0.7.0
+
+- Improve diagnostics for compiler errors
+- Support highlighting for both 0.12 and 0.13 depending on the pragma version
+
 ## v0.6.0
 
 - Add support for CashScript v0.13.0
