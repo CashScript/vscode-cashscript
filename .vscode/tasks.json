@@ -4,7 +4,6 @@
     {
       "type": "npm",
       "script": "watch",
-      "problemMatcher": "$tsc-watch",
       "isBackground": true,
       "presentation": {
         "reveal": "never"
@@ -12,6 +11,22 @@
       "group": {
         "kind": "build",
         "isDefault": true
+      },
+      "problemMatcher": {
+        "owner": "rolldown",
+        // Errors are reported in the terminal, not the Problems panel (never-matching
+        // regexp); this matcher exists for the background begin/end signals so F5
+        // knows when the initial build is done
+        "pattern": {
+          "regexp": "a^",
+          "file": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "changed, rebuilding",
+          "endsPattern": "Rebuilt dist in|Build failed"
+        }
       }
     }
   ]

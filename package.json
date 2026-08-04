@@ -34,17 +34,24 @@
   "activationEvents": [
     "onLanguage:cashscript"
   ],
-  "main": "./out/src/extension",
+  "main": "./dist/extension.js",
+  "files": [
+    "dist",
+    "media/icon.png",
+    "snippets",
+    "syntaxes",
+    "cashscript.configuration.json",
+    "CHANGELOG.md",
+    "LICENSE.md"
+  ],
   "scripts": {
-    "vscode:prepublish": "yarn esbuild-base --minify",
-    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
-    "esbuild": "yarn esbuild-base --sourcemap",
-    "esbuild-watch": "yarn esbuild-base --sourcemap --watch",
+    "vscode:prepublish": "rm -rf dist && rolldown -c --environment MINIFY:true",
     "lint": "prettier --write .",
-    "build": "tsc -p ./",
-    "clean": "rm -rf out",
-    "watch": "tsc -watch -p ./",
-    "package": "vsce package --no-yarn"
+    "build": "rm -rf dist && rolldown -c",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf out dist",
+    "watch": "rolldown -c -w",
+    "package": "vsce package --no-dependencies"
   },
   "contributes": {
     "languages": [
@@ -79,7 +86,6 @@
     "cashc-012": "npm:cashc@^0.12.2",
     "cashc-013": "npm:cashc@^0.13.2",
     "semver": "^7.7.2",
-    "vsce": "^2.15.0",
     "vscode-languageclient": "^7.0.0",
     "vscode-languageserver": "^7.0.0",
     "vscode-languageserver-textdocument": "^1.0.4"
@@ -88,8 +94,9 @@
     "@types/node": "^18.7.23",
     "@types/semver": "^7",
     "@types/vscode": "^1.83.0",
-    "esbuild": "^0.12.29",
+    "@vscode/vsce": "^3.0.0",
     "prettier": "^3.4.2",
+    "rolldown": "^1.2.2",
     "typescript": "^5.7.3",
     "vscode-test": "^1.6.1"
   },

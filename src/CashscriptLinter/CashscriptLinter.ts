@@ -10,10 +10,11 @@ type CashcModule = Pick<typeof import('cashc'), 'compileString'>;
 type CashscriptCompilerVersion = '0.12' | '0.13' | '0.14';
 type SourcePoint = Pick<Point, 'line' | 'column'>;
 
-const CASHC_PACKAGES: Record<CashscriptCompilerVersion, string> = {
-  '0.12': 'cashc-012',
-  '0.13': 'cashc-013',
-  '0.14': 'cashc',
+// Literal import() calls so the bundler includes each compiler version as a lazy chunk
+const CASHC_IMPORTERS: Record<CashscriptCompilerVersion, () => Promise<CashcModule>> = {
+  '0.12': () => import('cashc-012'),
+  '0.13': () => import('cashc-013'),
+  '0.14': () => import('cashc'),
 };
 
 const CASHC_VERSIONS: Record<CashscriptCompilerVersion, string> = {
@@ -26,15 +27,10 @@ const LATEST_COMPILER_VERSION: CashscriptCompilerVersion = '0.14';
 const PRE_IMPORT_COMPILER_VERSIONS: CashscriptCompilerVersion[] = ['0.12', '0.13'];
 const SEMVER_OPTIONS = { includePrerelease: true, loose: true };
 
-// Preserve import() in CommonJS output so the ESM cashc package can be loaded
-// (VS Code supports ESM extensions since v1.100, but Cursor does not yet)
-const importCashc = new Function('specifier', 'return import(specifier)') as (
-  specifier: string,
-) => Promise<CashcModule>;
 const cashcModules: Partial<Record<CashscriptCompilerVersion, Promise<CashcModule>>> = {};
 
 function loadCashc(compilerVersion: CashscriptCompilerVersion): Promise<CashcModule> {
-  cashcModules[compilerVersion] ??= importCashc(CASHC_PACKAGES[compilerVersion]);
+  cashcModules[compilerVersion] ??= CASHC_IMPORTERS[compilerVersion]();
   return cashcModules[compilerVersion];
 }
 

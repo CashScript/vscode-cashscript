@@ -20,6 +20,14 @@ code .
 
 Press F5 anywhere to start the test window, open the examples folder to test out any `.cash` file. All relevent files are located within the `/src` directory.
 
+### Building
+
+The extension is bundled with [rolldown](https://rolldown.rs) (see `rolldown.config.mjs`): the client entry (`dist/extension.js`, CommonJS) and the language server (`dist/server.mjs`, ESM — required because `@bitauth/libauth` uses top-level await). The bundled `cashc` compiler versions are split into lazily loaded chunks, so only the compiler matching a document's pragma is loaded at runtime.
+
+- `yarn build` - bundle to `dist/` with sourcemaps
+- `yarn watch` - rebuild on change (F5 starts this in the background, so edits are picked up by reloading the extension host window)
+- `yarn typecheck` - typecheck with tsc (no output; bundling does not typecheck)
+
 ---
 
 ## Welcome to your VS Code Extension
@@ -57,10 +65,10 @@ Press F5 anywhere to start the test window, open the examples folder to test out
 To publish the extension, we run the following command:
 
 ```
-yarn clean && yarn build && yarn package
+yarn package
 ```
 
-This creates a `cashscript-vscode-{version}.vsix` file in the root of the project.
+This bundles a minified production build (via the `vscode:prepublish` script) and creates a `cashscript-vscode-{version}.vsix` file in the root of the project.
 
 To publish the extension to the VS Code marketplace, we visit https://marketplace.visualstudio.com/manage/publishers/cashscript, right click on the CashScript extension in the list and select "Update". Then we upload the `cashscript-vscode-{version}.vsix` file and click "Upload".
 
