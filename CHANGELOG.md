@@ -2,6 +2,18 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
+## v0.8.0
+
+- Add support for CashScript v0.14.0 (currently in pre-release on `@next`)
+  - Add user-defined reusable functions, including multiple return values with destructuring
+  - Add top-level global constants (completions & hover show the compile-time declaration)
+  - Add the `unused` modifier for intentionally unused parameters and variables
+  - Add `import` directives — imported files are resolved from disk relative to the document
+  - Diagnostics for library files (functions / constants without a contract)
+  - Errors inside imported files are reported on the corresponding `import` statement
+  - Completions, hovers and signature help include functions and constants from (transitively) imported files
+- Keep supporting 0.12 and 0.13 contracts based on the pragma version
+
 ## v0.7.0
 
 - Improve diagnostics for compiler errors
