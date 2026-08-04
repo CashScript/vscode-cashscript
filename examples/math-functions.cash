@@ -1,0 +1,22 @@
+// Library file: declares reusable functions and global constants, and no contract.
+// Imported by user-defined-functions.cash
+pragma cashscript ^0.14.0;
+
+int constant MAX_RESULT = 1000;
+
+function min3(int a, int b, int c) returns (int) {
+    return min(min(a, b), c);
+}
+
+function pow(int base, int exponent) returns (int) {
+    int result = 1;
+    for (int i = 0; i < exponent; i++) {
+        result = result * base;
+    }
+    return result;
+}
+
+// Functions can return multiple values, destructured at the call site
+function divmod(int a, int b) returns (int, int) {
+    return a / b, a % b;
+}

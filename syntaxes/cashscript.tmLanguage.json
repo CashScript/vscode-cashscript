@@ -113,6 +113,12 @@
           "include": "#control-pragma"
         },
         {
+          "include": "#control-import"
+        },
+        {
+          "include": "#control-returns"
+        },
+        {
           "include": "#control-other"
         },
         {
@@ -124,8 +130,16 @@
       ]
     },
     "control-flow": {
-      "match": "\\b(if|else|require|do|while|for)\\b",
+      "match": "\\b(if|else|require|do|while|for|return)\\b",
       "name": "keyword.control.flow.cashscript"
+    },
+    "control-import": {
+      "match": "\\b(import)\\b",
+      "name": "keyword.control.import.cashscript"
+    },
+    "control-returns": {
+      "match": "\\b(returns)\\b",
+      "name": "keyword.control.returns.cashscript"
     },
     "control-pragma": {
       "begin": "\\b(pragma)\\b",
@@ -162,7 +176,7 @@
       "name": "variable.language.transaction.cashscript"
     },
     "control-modifier": {
-      "match": "\\b(constant)\\b",
+      "match": "\\b(constant|unused)\\b",
       "name": "constant.language.modifer"
     },
     "constant": {

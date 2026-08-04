@@ -1,0 +1,16 @@
+pragma cashscript ^0.14.0;
+
+import "../math-functions.cash";
+
+// Imported function and constant names share a single global namespace,
+// so a name may only be defined once across the whole import graph
+// (pow is already defined in math-functions.cash)
+function pow(int base, int exponent) returns (int) {
+  return base * exponent;
+}
+
+contract ImportRedefinition() {
+  function spend(int x) {
+    require(pow(x, 2) == 9);
+  }
+}

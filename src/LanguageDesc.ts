@@ -95,7 +95,42 @@ let INSTANTIATIONS: Data = {
   },
 };
 
-let STATEMENTS: Data = {};
+// Statement-level constructs (grammar rules `importDirective` and `returnStatement`)
+let STATEMENTS: Data = {
+  import: {
+    code: 'import "path/to/file.cash";',
+    codeDesc:
+      'Imports the reusable functions and global constants declared in another CashScript file, resolved relative to this file. Import directives must appear at the top of the file, after any `pragma` directives. Available since CashScript 0.14.',
+  },
+  return: {
+    code: 'return expression(, expression...)',
+    codeDesc:
+      'Returns one or more comma-separated values from a user-defined function. Must be the final statement of the function body (no early or conditional returns). Available since CashScript 0.14.',
+  },
+};
+
+// Keywords that are part of a declaration header rather than statements
+let DECLARATION_KEYWORDS: Data = {
+  returns: {
+    code: 'function name(params) returns (T1, T2, ...)',
+    codeDesc:
+      'Declares the return type(s) of a user-defined function. A call to a function with multiple return values must be destructured into exactly one variable per return value (`int a, int b = fn()`). A function without a `returns` clause returns nothing and is called as a statement. Available since CashScript 0.14.',
+  },
+};
+
+// Declaration modifiers (grammar rule `modifier`), valid between a type name and an identifier
+let MODIFIERS: Data = {
+  constant: {
+    code: 'type constant NAME = expression',
+    codeDesc:
+      'Marks a variable as immutable. At the top level of a file (outside the contract), declares a global constant whose initialiser is evaluated at compile time: literals, references to other constants, integer arithmetic and string/bytes concatenation are supported. Global constants can be shared between files with `import` (CashScript 0.14+).',
+  },
+  unused: {
+    code: 'type unused name',
+    codeDesc:
+      'Marks a parameter or variable as intentionally unused. The value is dropped from the stack immediately after its declaration and cannot be referenced later. Useful for padding contract bytecode (higher opcost budget) or for nonces to differentiate between similar contracts. Available since CashScript 0.14.',
+  },
+};
 
 let UNITS: Data = {
   satoshis: {
@@ -258,8 +293,7 @@ let MEMBERS: Data = {
   },
   split: {
     code: '[s1, s2] sequence.split(int i)',
-    codeDesc:
-      'Splits the sequence at the specified index and returns a tuple with the two resulting sequences.',
+    codeDesc: 'Splits the sequence at the specified index and returns a tuple with the two resulting sequences.',
   },
   reverse: {
     code: 'any sequence.reverse()',
@@ -360,6 +394,8 @@ let LANGUAGE: Data = {
   ...GLOBAL_FUNCTIONS,
   ...INSTANTIATIONS,
   ...STATEMENTS,
+  ...DECLARATION_KEYWORDS,
+  ...MODIFIERS,
   ...TYPECASTS,
   ...UNITS,
   ...INTROSPECTION,
@@ -370,11 +406,7 @@ let LANGUAGE: Data = {
  * Build a CompletionItem with `detail` / `documentation` sourced from the
  * matching `LANGUAGE` entry (so hover and completion surface the same info).
  */
-function member(
-  fullKey: string,
-  label: string,
-  kind: CompletionItemKind = CompletionItemKind.Field,
-): CompletionItem {
+function member(fullKey: string, label: string, kind: CompletionItemKind = CompletionItemKind.Field): CompletionItem {
   const entry = LANGUAGE[fullKey];
   return {
     label,

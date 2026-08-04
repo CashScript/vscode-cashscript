@@ -1,0 +1,33 @@
+// New additions in CashScript v0.14:
+// - user-defined reusable functions with (multiple) return values
+// - top-level global constants with compile-time initialisers
+// - import directives to share functions and constants across files
+// - 'unused' modifier for intentionally unused parameters and variables
+pragma cashscript ^0.14.0;
+
+import "./math-functions.cash";
+
+// Global constants support simple arithmetic in their initialisers
+int constant TIMEOUT = 2 hours;
+int constant EXTENDED_TIMEOUT = TIMEOUT + 30 minutes;
+
+// Functions can be declared at the top level of the contract file itself...
+function requireFundsRetained(int minBalance) {
+    require(tx.outputs[0].value >= minBalance, "contract balance too low");
+}
+
+contract UserDefinedFunctions(int minBalance, int power, bytes unused nonce) {
+    function spend(int a, int b, int c) {
+        requireFundsRetained(minBalance);
+        require(tx.time >= EXTENDED_TIMEOUT);
+
+        // ...or imported from another file
+        int smallest = min3(a, b, c);
+        require(pow(smallest, power) < MAX_RESULT);
+
+        // Multiple return values are destructured at the call site
+        int quotient, int remainder = divmod(a, b);
+        require(quotient >= 0);
+        require(remainder >= 0);
+    }
+}

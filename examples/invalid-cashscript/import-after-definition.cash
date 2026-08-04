@@ -1,0 +1,13 @@
+pragma cashscript ^0.14.0;
+
+int constant FEE = 1000;
+
+// Import directives must appear at the top of the file, after any pragma
+// directives and before any constant, function or contract definitions
+import "../math-functions.cash";
+
+contract ImportAfterDefinition() {
+  function spend(int a, int b, int c) {
+    require(min3(a, b, c) == FEE);
+  }
+}

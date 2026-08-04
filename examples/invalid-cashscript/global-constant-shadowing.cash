@@ -1,0 +1,10 @@
+pragma cashscript ^0.14.0;
+
+int constant FEE = 1000;
+
+contract GlobalConstantShadowing() {
+  // Parameters and local variables cannot shadow global constants
+  function spend(int FEE) {
+    require(FEE == 1000);
+  }
+}

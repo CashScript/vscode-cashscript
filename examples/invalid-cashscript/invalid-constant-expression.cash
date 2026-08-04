@@ -1,0 +1,12 @@
+pragma cashscript ^0.14.0;
+
+// Global constant initialisers are evaluated at compile time and only support
+// literals, references to other constants, integer arithmetic and concatenation
+// (no casts, comparisons or function calls)
+int constant HASHED = int(0x01);
+
+contract InvalidConstantExpression() {
+  function spend() {
+    require(HASHED == 1);
+  }
+}

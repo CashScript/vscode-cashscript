@@ -1,0 +1,14 @@
+pragma cashscript ^0.14.0;
+
+function divmod(int a, int b) returns (int, int) {
+  return a / b, a % b;
+}
+
+contract DestructuringMismatch() {
+  function spend(int x) {
+    // A call to a function with multiple return values must be destructured
+    // into exactly one variable per return value
+    int quotient = divmod(x, 3);
+    require(quotient == 4);
+  }
+}

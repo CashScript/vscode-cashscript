@@ -1,0 +1,14 @@
+pragma cashscript ^0.14.0;
+
+function double(int a) returns (int) {
+  return a * 2;
+}
+
+contract IgnoredReturnValue() {
+  function spend(int x) {
+    // The return value of a function must be used;
+    // only void functions may be called as a statement
+    double(x);
+    require(x > 0);
+  }
+}

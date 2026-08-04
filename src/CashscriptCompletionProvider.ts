@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { Range, CompletionItem, CompletionItemKind } from 'vscode';
 import { DOT_COMPLETIONS, GLOBAL_FUNCTIONS } from './LanguageDesc';
+import { collectUserSymbols, UserSymbols } from './UserFunctions';
+import { blankOutComments, blankOutStrings, documentFilePath } from './utils';
 
 const SEQUENCE_MEMBERS: CompletionItem[] = [
   { label: 'length', kind: CompletionItemKind.Field },
@@ -49,27 +51,97 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
     this.offset = document.offsetAt(position) || 0;
     this.currentIndex = 0;
     this.variableTypeMap = null;
+    this.userSymbols = null;
 
     const completions: CompletionItem[] = this.getAllCompletions();
     return completions;
   }
 
   getAllCompletions(): CompletionItem[] {
-    let completions: CompletionItem[] = [];
-
     if (this.isDot()) {
       return this.getDotCompletions();
     }
 
-    completions = completions.concat(this.getVarCompletions());
-    // completions = completions.concat(this.getConditionalCompletions());
-    completions = completions.concat(this.getControlCompletions());
-    completions = completions.concat(this.getGlobalFunctionCompletions());
-    completions = completions.concat(this.getOutputCompletions());
-    completions = completions.concat(this.getTypesCompletions());
-    completions = completions.concat(this.getGlobalConstantsCompletions());
+    // Only offer the completion groups that are syntactically valid at the cursor
+    const context = this.getCursorContext();
+    switch (context.kind) {
+      case 'returns-clause':
+        return this.getKeywordCompletions(['returns']);
+      case 'header-trailing':
+        return [];
+      case 'type-list':
+        // Inside `returns (...)`: only type names are valid
+        return this.getKeywordCompletions(TYPE_NAMES);
+      case 'parameter-list':
+        return this.getKeywordCompletions([...TYPE_NAMES, ...MODIFIERS]);
+      case 'contract-body':
+        return this.getKeywordCompletions(['function']);
+      case 'top-level':
+        // Constant definitions and their initialisers (no casts or function calls)
+        return [
+          ...this.getKeywordCompletions(['pragma', 'cashscript', 'import', 'contract', 'function']),
+          ...this.getKeywordCompletions([...TYPE_NAMES, 'constant', ...BOOLEAN_LITERALS]),
+          ...this.getUserConstantCompletions(),
+          ...this.getUnitCompletions(),
+        ];
+      case 'function-body':
+        return [
+          ...this.getVarCompletions(),
+          ...this.getKeywordCompletions(
+            // `return` is only valid inside top-level (reusable) functions
+            context.insideContract ? STATEMENT_KEYWORDS : [...STATEMENT_KEYWORDS, 'return'],
+          ),
+          ...this.getGlobalFunctionCompletions(),
+          ...this.getUserFunctionCompletions(),
+          ...this.getUserConstantCompletions(),
+          ...this.getOutputCompletions(),
+          ...this.getKeywordCompletions([...TYPE_NAMES, ...MODIFIERS, ...BOOLEAN_LITERALS, ...UNSAFE_CASTS]),
+          ...this.getUnitCompletions(),
+          ...this.getKeywordCompletions(['tx', 'this']),
+        ];
+    }
+  }
 
-    return completions;
+  /**
+   * Classifies the cursor position by tracking unmatched braces / parens in the
+   * (comment- and string-blanked) text before it, and what opened each of them.
+   */
+  protected getCursorContext(): CursorContext {
+    const textBefore = blankOutStrings(blankOutComments(this.text.slice(0, this.offset)));
+    // Ignore the partially typed word so `function f() ret` classifies like `function f() `
+    const beforeWord = textBefore.replace(/\w*$/, '');
+
+    const braceOpeners: number[] = [];
+    const parenOpeners: number[] = [];
+    for (let i = 0; i < beforeWord.length; i++) {
+      const char = beforeWord[i];
+      if (char === '{') braceOpeners.push(i);
+      else if (char === '}') braceOpeners.pop();
+      else if (char === '(') parenOpeners.push(i);
+      else if (char === ')') parenOpeners.pop();
+    }
+
+    // Header / returns parens hold declarations; other unclosed parens are
+    // expressions and classify like their surrounding block
+    if (parenOpeners.length > 0) {
+      const beforeParen = beforeWord.slice(0, parenOpeners[parenOpeners.length - 1]);
+      if (/\b(function|contract)\s+\w+\s*$/.test(beforeParen)) return { kind: 'parameter-list' };
+      if (/\breturns\s*$/.test(beforeParen)) return { kind: 'type-list' };
+    }
+
+    if (braceOpeners.length === 0) {
+      // Directly after a top-level function's parameter list only `returns` can follow
+      if (/\bfunction\s+\w+\s*\([^()]*\)\s*$/.test(beforeWord)) return { kind: 'returns-clause' };
+      // After a contract header or a completed returns clause, only `{` can follow
+      if (/\b(contract\s+\w+\s*\([^()]*\)|returns\s*(\([^()]*\))?)\s*$/.test(beforeWord)) {
+        return { kind: 'header-trailing' };
+      }
+      return { kind: 'top-level' };
+    }
+
+    const openerKinds = braceOpeners.map((position) => classifyBlockOpener(beforeWord.slice(0, position)));
+    if (openerKinds[openerKinds.length - 1] === 'contract') return { kind: 'contract-body' };
+    return { kind: 'function-body', insideContract: openerKinds.includes('contract') };
   }
 
   protected getCharRange(begin: number, end: number) {
@@ -134,7 +206,7 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
       // Naive: match a flat argument list (no nested parens). Good enough for
       // most source code; deeper nesting falls back to `null`.
       const callMatch = text.match(/(\w+)\s*\([^()]*\)$/);
-      if (callMatch) return getCallReturnType(callMatch[1]);
+      if (callMatch) return getCallReturnType(callMatch[1]) ?? this.getUserFunctionReturnType(callMatch[1]);
       return null;
     }
 
@@ -144,10 +216,10 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
     // (Intentionally no-op — casts return the cast-to type, which we infer via
     //  the member-chain case below if needed.)
 
-    // Identifier → variable
+    // Identifier → variable or (imported) global constant
     const idMatch = text.match(/(\w+)$/);
     if (idMatch) {
-      return this.getVariableTypeMap()[idMatch[1]] ?? null;
+      return this.getVariableTypeMap()[idMatch[1]] ?? this.getGlobalConstantType(idMatch[1]);
     }
 
     return null;
@@ -157,26 +229,28 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
 
   protected getVariableTypeMap(): Record<string, string> {
     if (this.variableTypeMap) return this.variableTypeMap;
-    const code = stripComments(this.text);
-    const re = /\b(int|bool|string|pubkey|sig|datasig|byte|bytes\d*)\s+(?:constant\s+)?(\w+)/g;
+    const code = blankOutComments(this.text);
+    const re = /\b(int|bool|string|pubkey|sig|datasig|byte|bytes\d*)\s+((?:(?:constant|unused)\s+)*)(\w+)/g;
     const map: Record<string, string> = {};
     for (const m of code.matchAll(re)) {
-      map[m[2]] = m[1];
+      map[m[3]] = m[1];
     }
     this.variableTypeMap = map;
     return map;
   }
 
   protected getVarCompletions(): CompletionItem[] {
-    const re = /(int|bool|string|pubkey|sig|datasig|byte|bytes|bytes[0-9]+)\s+(?:constant\s+)?(\w+)/g;
-    const codeOnly = stripComments(this.text);
+    const re = /(int|bool|string|pubkey|sig|datasig|byte|bytes|bytes[0-9]+)\s+((?:(?:constant|unused)\s+)*)(\w+)/g;
+    const codeOnly = blankOutComments(this.text);
     const completions: CompletionItem[] = [];
     const seen = new Set<string>();
     for (const m of codeOnly.matchAll(re)) {
-      if (seen.has(m[2])) continue;
-      seen.add(m[2]);
+      // Variables marked `unused` cannot be referenced, so don't suggest them
+      if (m[2].includes('unused')) continue;
+      if (seen.has(m[3])) continue;
+      seen.add(m[3]);
       completions.push({
-        label: m[2],
+        label: m[3],
         kind: CompletionItemKind.Variable,
       });
     }
@@ -184,14 +258,50 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
     return completions;
   }
 
-  protected getControlCompletions(): CompletionItem[] {
-    const words = ['pragma', 'cashscript', 'if', 'else', 'do', 'while', 'for'];
-    const completions = [];
-    for (let i = 0; i < words.length; i++) {
-      this.currentIndex += 1;
-      completions.push(new CompletionItem(words[i]));
-    }
-    return completions;
+  protected userSymbols: UserSymbols | null = null;
+
+  protected getUserSymbols(): UserSymbols {
+    this.userSymbols ??= collectUserSymbols(this.text, documentFilePath(this.doc));
+    return this.userSymbols;
+  }
+
+  protected getUserFunctionReturnType(fn: string): string | null {
+    const userFunction = this.getUserSymbols().functions.find((candidate) => candidate.name === fn);
+    // Only single-value returns produce a directly usable expression type
+    if (userFunction?.returnTypes.length !== 1) return null;
+    return userFunction.returnTypes[0];
+  }
+
+  protected getGlobalConstantType(name: string): string | null {
+    const constant = this.getUserSymbols().constants.find((candidate) => candidate.name === name);
+    return constant?.type ?? null;
+  }
+
+  // User-defined functions, both local and imported (CashScript 0.14+)
+  protected getUserFunctionCompletions(): CompletionItem[] {
+    return this.getUserSymbols().functions.map((userFunction) => ({
+      label: userFunction.name,
+      kind: CompletionItemKind.Function,
+      detail: userFunction.signature,
+      documentation: userFunction.importedFrom ? `Imported from '${userFunction.importedFrom}'` : undefined,
+    }));
+  }
+
+  // Global constants, both local and imported (CashScript 0.14+)
+  protected getUserConstantCompletions(): CompletionItem[] {
+    return this.getUserSymbols().constants.map((constant) => ({
+      label: constant.name,
+      kind: CompletionItemKind.Constant,
+      detail: constant.declaration,
+      documentation: constant.importedFrom ? `Imported from '${constant.importedFrom}'` : undefined,
+    }));
+  }
+
+  protected getKeywordCompletions(words: string[]): CompletionItem[] {
+    return words.map((word) => ({
+      label: word,
+      kind: CompletionItemKind.Keyword,
+    }));
   }
 
   protected getGlobalFunctionCompletions(): CompletionItem[] {
@@ -302,81 +412,45 @@ export default class CashscriptCompletionProvider implements vscode.CompletionIt
 
   protected getOutputCompletions(): CompletionItem[] {
     const words = ['LockingBytecodeP2PKH', 'LockingBytecodeP2SH20', 'LockingBytecodeP2SH32', 'LockingBytecodeNullData'];
-    const completions = [];
+    const completions: CompletionItem[] = [];
     for (let i = 0; i < words.length; i++) {
       this.currentIndex += 1;
       completions.push({
         label: words[i],
         kind: CompletionItemKind.Keyword,
-        data: i + 1,
       });
     }
     return completions;
   }
 
-  protected getTypesCompletions(): CompletionItem[] {
-    const words = [
-      'int',
-      'bool',
-      'string',
-      'byte',
-      'bytes',
-      'pubkey',
-      'sig',
-      'datasig',
-      'true',
-      'false',
-      'constant',
-      'unsafe_int',
-      'unsafe_bool',
-      'unsafe_byte',
-      'unsafe_bytes',
-    ];
-    const completions = [];
-    for (let i = 0; i < words.length; i++) {
-      this.currentIndex += 1;
-      completions.push({
-        label: words[i],
-        kind: CompletionItemKind.Keyword,
-        data: i + 1,
-      });
-    }
-    return completions;
-  }
-
-  protected getGlobalConstantsCompletions(): CompletionItem[] {
-    const words = [
-      'sats',
-      'satoshis',
-      'finney',
-      'bit',
-      'bitcoin',
-      'seconds',
-      'minutes',
-      'hours',
-      'days',
-      'weeks',
-      'tx',
-    ];
-    const completions = [];
-    for (let i = 0; i < words.length; i++) {
-      this.currentIndex += 1;
-      completions.push({
-        label: words[i],
-        kind: CompletionItemKind.Keyword,
-        data: i + 1,
-      });
-    }
-    return completions;
+  protected getUnitCompletions(): CompletionItem[] {
+    const words = ['sats', 'satoshis', 'finney', 'bits', 'bitcoin', 'seconds', 'minutes', 'hours', 'days', 'weeks'];
+    return this.getKeywordCompletions(words);
   }
 }
 
-/**
- * Replace comment contents with spaces so byte offsets stay aligned while
- * removing any identifiers that live inside `//` or `/* *\/` comments.
- */
-function stripComments(text: string): string {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+const STATEMENT_KEYWORDS = ['if', 'else', 'do', 'while', 'for'];
+// Valid as declared types (grammar rule `typeName`): declarations, parameters, returns clauses
+const TYPE_NAMES = ['int', 'bool', 'string', 'byte', 'bytes', 'pubkey', 'sig', 'datasig'];
+// Valid between a type name and an identifier (grammar rule `modifier`)
+const MODIFIERS = ['constant', 'unused'];
+const BOOLEAN_LITERALS = ['true', 'false'];
+// Cast operators, only valid in expressions — not type names
+const UNSAFE_CASTS = ['unsafe_int', 'unsafe_bool', 'unsafe_byte', 'unsafe_bytes'];
+
+type CursorContext =
+  | { kind: 'top-level' }
+  | { kind: 'returns-clause' }
+  | { kind: 'header-trailing' }
+  | { kind: 'parameter-list' }
+  | { kind: 'type-list' }
+  | { kind: 'contract-body' }
+  | { kind: 'function-body'; insideContract: boolean };
+
+// Determines which construct opened the block at an unmatched `{`: a contract
+// header, a function header, or any other block (if / else / loops)
+function classifyBlockOpener(textBeforeBrace: string): 'contract' | 'function' | 'block' {
+  const headerMatch = textBeforeBrace.match(/\b(contract|function)\s+\w+\s*\([^()]*\)\s*(returns\s*\([^()]*\))?\s*$/);
+  if (!headerMatch) return 'block';
+  return headerMatch[1] as 'contract' | 'function';
 }

@@ -1,0 +1,14 @@
+pragma cashscript ^0.14.0;
+
+// checkSig, checkMultiSig and this.activeBytecode cannot be used inside
+// a user-defined function, since they would apply to the function body
+// rather than the contract
+function verify(sig s, pubkey pk) returns (bool) {
+  return checkSig(s, pk);
+}
+
+contract ChecksigInFunction() {
+  function spend(sig s, pubkey pk) {
+    require(verify(s, pk));
+  }
+}

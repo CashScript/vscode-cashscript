@@ -1,0 +1,16 @@
+pragma cashscript ^0.14.0;
+
+// A value-returning function must end with a single return statement,
+// early or conditional returns are not allowed
+function pick(int a) returns (int) {
+  if (a > 0) {
+    return a;
+  }
+  return 0 - a;
+}
+
+contract EarlyReturn() {
+  function spend(int x) {
+    require(pick(x) == 5);
+  }
+}

@@ -1,8 +1,14 @@
 {
   "Set Pragma": {
     "prefix": "pragma",
-    "body": "pragma cashscript ^${1:0.6.0};\n",
+    "body": "pragma cashscript ^${1:0.14.0};\n",
     "description": "Set semantic version"
+  },
+
+  "Import Directive": {
+    "prefix": "import",
+    "body": "import \"${1:./functions.cash}\";\n",
+    "description": "Import user-defined functions from another file (CashScript 0.14+)"
   },
 
   "Instantiate a new Contract": {
@@ -15,6 +21,18 @@
     "prefix": "function",
     "body": "function ${1:functionName}(${2:params}) {\n\t$3\n}",
     "description": "Create function"
+  },
+
+  "Reusable Function": {
+    "prefix": "rfunction",
+    "body": "function ${1:functionName}(${2:params}) returns (${3:int}) {\n\treturn $4;\n}",
+    "description": "Create a reusable top-level function with a return value (CashScript 0.14+)"
+  },
+
+  "Global Constant": {
+    "prefix": "constant",
+    "body": "${1:int} constant ${2:CONSTANT_NAME} = ${3:value};\n",
+    "description": "Declare a top-level global constant (CashScript 0.14+)"
   },
 
   "If Statement": {

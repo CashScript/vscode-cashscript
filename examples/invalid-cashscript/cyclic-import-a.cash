@@ -1,0 +1,9 @@
+pragma cashscript ^0.14.0;
+
+// Cyclic imports are not allowed and result in a compile error
+// (cyclic-import-b.cash imports this file back)
+import "./cyclic-import-b.cash";
+
+function increment(int a) returns (int) {
+  return a + 1;
+}

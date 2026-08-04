@@ -1,0 +1,11 @@
+pragma cashscript ^0.14.0;
+
+int constant FEE = 1000;
+
+contract GlobalConstantReassignment() {
+  function spend() {
+    // Global constants are immutable
+    FEE = 2000;
+    require(FEE == 2000);
+  }
+}

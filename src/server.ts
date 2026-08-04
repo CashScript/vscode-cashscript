@@ -7,6 +7,7 @@ import {
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import CashscriptLinter from './CashscriptLinter/CashscriptLinter';
+import { uriToFilePath } from './utils';
 
 let connection = createConnection(ProposedFeatures.all);
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -43,7 +44,7 @@ documents.onDidChangeContent((change) => {
  */
 async function validateDocument(textDocument: TextDocument): Promise<void> {
   const code = textDocument.getText();
-  const diagnostics = await CashscriptLinter.getDiagnostics(code);
+  const diagnostics = await CashscriptLinter.getDiagnostics(code, uriToFilePath(textDocument.uri));
   connection.sendDiagnostics({
     uri: textDocument.uri,
     diagnostics,

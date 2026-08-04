@@ -1,0 +1,10 @@
+pragma cashscript ^0.14.0;
+
+contract ReferenceUnusedVariable() {
+  function spend(int value) {
+    // A declaration marked 'unused' is dropped from the stack immediately
+    // and cannot be referenced later
+    int unused discarded = value + 1;
+    require(discarded > 0);
+  }
+}

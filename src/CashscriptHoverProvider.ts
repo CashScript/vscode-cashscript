@@ -1,9 +1,11 @@
 import * as vscode from 'vscode';
 import { LANGUAGE, TYPES } from './LanguageDesc';
+import { findGlobalConstant, findUserFunction } from './UserFunctions';
+import { blankOutComments, documentFilePath, stripCommentsAndFlatten } from './utils';
 
 class CashscriptHoverProvider implements vscode.HoverProvider {
   re = /[a-zA-Z0-9_]+/g; // regex to get selected word
-  constructor(private channel: vscode.OutputChannel = null) { }
+  constructor(private channel?: vscode.OutputChannel) {}
 
   provideHover(
     document: vscode.TextDocument,
@@ -25,11 +27,17 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
       if (typeAnnotation) return new vscode.Hover(typeAnnotation, range);
     }
 
+    const globalConstant = this.getGlobalConstantHover(document, word);
+    if (globalConstant) return new vscode.Hover(globalConstant, range);
+
     const varTypes = this.getVariableTypes(document, word); // fix this
     if (varTypes) return new vscode.Hover(varTypes, range);
 
     const annotation = this.getHoverAnnotation(word);
     if (annotation) return new vscode.Hover(annotation, range);
+
+    const userFunction = this.getUserFunctionHover(document, word);
+    if (userFunction) return new vscode.Hover(userFunction, range);
 
     const miscel = this.getMiscellaneousHovers(document, position);
     if (miscel) return new vscode.Hover(miscel, range);
@@ -37,7 +45,31 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     return null;
   }
 
-  getTypeAnnotation(word: string): vscode.MarkdownString[] {
+  // Hover for user-defined functions, both local and imported (CashScript 0.14+)
+  getUserFunctionHover(document: vscode.TextDocument, word: string): vscode.MarkdownString[] | null {
+    const userFunction = findUserFunction(document.getText(), word, documentFilePath(document));
+    if (!userFunction) return null;
+
+    const hover = [new vscode.MarkdownString().appendCodeblock(userFunction.signature)];
+    if (userFunction.importedFrom) {
+      hover.push(new vscode.MarkdownString(`Imported from \`${userFunction.importedFrom}\``));
+    }
+    return hover;
+  }
+
+  // Hover for global constants (local and imported) showing the full declaration
+  getGlobalConstantHover(document: vscode.TextDocument, word: string): vscode.MarkdownString[] | null {
+    const constant = findGlobalConstant(document.getText(), word, documentFilePath(document));
+    if (!constant) return null;
+
+    const hover = [new vscode.MarkdownString().appendCodeblock(constant.declaration)];
+    if (constant.importedFrom) {
+      hover.push(new vscode.MarkdownString(`Imported from \`${constant.importedFrom}\``));
+    }
+    return hover;
+  }
+
+  getTypeAnnotation(word: string): vscode.MarkdownString[] | null {
     const boundedBytesMatch = word.match(/^bytes(\d+)$/);
     const lookupKey = boundedBytesMatch ? 'bytesN' : word;
     const data = TYPES[lookupKey] || null;
@@ -51,7 +83,7 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     return [new vscode.MarkdownString().appendCodeblock(code), new vscode.MarkdownString(codeDesc)];
   }
 
-  getHoverAnnotation(word: string): vscode.MarkdownString[] {
+  getHoverAnnotation(word: string): vscode.MarkdownString[] | null {
     const boundedBytesMatch = word.match(/^(unsafe_)?bytes(\d+)$/);
     const lookupKey = boundedBytesMatch ? `${boundedBytesMatch[1] ?? ''}bytesN` : word;
 
@@ -70,8 +102,8 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
     return [new vscode.MarkdownString().appendCodeblock(code), new vscode.MarkdownString(codeDesc)];
   }
 
-  getMiscellaneousHovers(document: vscode.TextDocument, position: vscode.Position): vscode.MarkdownString[] {
-    const reg = /(contract|function)\s+(\w+)\s*\([\s\S]*?\)/g;
+  getMiscellaneousHovers(document: vscode.TextDocument, position: vscode.Position): vscode.MarkdownString[] | null {
+    const reg = /(contract|function)\s+(\w+)\s*\([\s\S]*?\)(\s*returns\s*\([^)]*\))?/g;
     const range = findEnclosingMatch(document, position, reg);
     if (!range) return null;
 
@@ -82,7 +114,7 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
   /*
    * Very bad way to get type annotations, better option: custom Tree Builder
    */
-  getVariableTypes(document: vscode.TextDocument, targetWord: string): vscode.MarkdownString[] {
+  getVariableTypes(document: vscode.TextDocument, targetWord: string): vscode.MarkdownString[] | null {
     const type = this.getVariableType(targetWord, document);
     if (!type) return null;
     return [new vscode.MarkdownString().appendCodeblock(`${type} ${targetWord}`)];
@@ -96,16 +128,18 @@ class CashscriptHoverProvider implements vscode.HoverProvider {
    * @returns a string of the data type
    */
   getVariableType(variable: string, document: vscode.TextDocument) {
+    // Modifiers would match as the "variable" in `int constant e`, shadowing their docs
+    if (variable === 'constant' || variable === 'unused') return null;
+
     const text = document.getText();
     const matches = text.match(
       new RegExp(
-        `\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*|unsafe_int|unsafe_bool|unsafe_byte|unsafe_bytes\\d*)\\s+(?:constant\\s+)?${variable}\\b`,
+        `\\b(int|bool|string|pubkey|sig|datasig|byte|bytes\\d*|unsafe_int|unsafe_bool|unsafe_byte|unsafe_bytes\\d*)\\s+(?:(?:constant|unused)\\s+)*${variable}\\b`,
       ),
     ); //regex still incomplete
     if (!matches) return null;
     return matches[1];
   }
-
 }
 
 /**
@@ -144,10 +178,7 @@ function getDottedWord(
   const normalisedPrefix = prefix.replace(/\[[^\]]*\]/g, '[]');
   const combined = `${normalisedPrefix}${word}`;
   const startChar = range.start.character - prefix.length;
-  const combinedRange = new vscode.Range(
-    new vscode.Position(position.line, startChar),
-    range.end,
-  );
+  const combinedRange = new vscode.Range(new vscode.Position(position.line, startChar), range.end);
   return { word: combined, range: combinedRange };
 }
 
@@ -183,34 +214,4 @@ export function findEnclosingMatch(
   }
 
   return undefined;
-}
-
-/**
- * Replace every character inside `//` line comments and `/* *\/` block comments
- * with a space (newlines preserved) so byte offsets stay aligned with the
- * original document while the comment content itself is invisible to regexes.
- */
-function blankOutComments(text: string): string {
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
-}
-
-/**
- * Removes comments and flattens a multiline function signature into a single line.
- *
- * @param input The input string, e.g., a function signature match.
- * @returns A cleaned, one-line string.
- */
-export function stripCommentsAndFlatten(input: string): string {
-  // Remove multiline block comments (/* ... */)
-  let output = input.replace(/\/\*[\s\S]*?\*\//g, '');
-
-  // Remove single-line comments (//...)
-  output = output.replace(/\/\/.*$/gm, '');
-
-  // Replace newlines and excessive whitespace with a single space
-  output = output.replace(/\s+/g, ' ').trim();
-
-  return output;
 }

@@ -1,0 +1,15 @@
+pragma cashscript ^0.14.0;
+
+// A void function must end with a require statement,
+// just like contract functions
+function addAndLog(int a) {
+  int b = a + 1;
+  console.log(b);
+}
+
+contract FunctionMissingFinalRequire() {
+  function spend(int x) {
+    addAndLog(x);
+    require(x > 0);
+  }
+}
