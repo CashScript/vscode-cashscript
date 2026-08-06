@@ -11,7 +11,8 @@ let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
   // Initialize Server Options
-  const serverModule = path.join(__dirname, 'server.js');
+  // The server is bundled as ESM (.mjs) because cashc's dependencies use top-level await
+  const serverModule = path.join(__dirname, 'server.mjs');
   let serverOptions: ServerOptions = {
     debug: {
       module: serverModule,

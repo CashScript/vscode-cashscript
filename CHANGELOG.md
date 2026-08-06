@@ -2,6 +2,12 @@
 
 All notable changes to the "vscode-cashscript" extension will be documented in this file.
 
+## v0.8.1
+
+- Fix the extension failing to start
+- Fix diagnostics not appearing for all files when multiple files were opened or edited in quick succession
+- Clear diagnostics when a file is closed
+
 ## v0.8.0
 
 - Add support for CashScript v0.14.0 (currently in pre-release on `@next`)

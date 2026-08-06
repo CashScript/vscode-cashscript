@@ -12,8 +12,9 @@ import { uriToFilePath } from './utils';
 let connection = createConnection(ProposedFeatures.all);
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-let isValidatingFile = false; // stop excessive checks for performace
-let validationDelay = 750; // Delay in ms for checking file
+// Debounce per document, latest content wins
+const pendingValidations = new Map<string, NodeJS.Timeout>();
+const validationDelay = 750; // Delay in ms for checking file
 
 // Initialize connection
 connection.onInitialize((params: InitializeParams) => {
@@ -26,22 +27,25 @@ connection.onInitialize((params: InitializeParams) => {
   return result;
 });
 
-/**
- * On document change
- *  - validate
- */
 documents.onDidChangeContent((change) => {
-  if (!isValidatingFile) {
-    isValidatingFile = true;
-    setTimeout(() => validateDocument(change.document), validationDelay);
-  }
+  const uri = change.document.uri;
+  clearTimeout(pendingValidations.get(uri));
+  pendingValidations.set(
+    uri,
+    setTimeout(() => {
+      pendingValidations.delete(uri);
+      validateDocument(change.document);
+    }, validationDelay),
+  );
 });
 
-/**
- * Reports diagnostics to language client
- *
- * @param textDocument vscode-languageserver textDocument
- */
+documents.onDidClose((event) => {
+  const uri = event.document.uri;
+  clearTimeout(pendingValidations.get(uri));
+  pendingValidations.delete(uri);
+  connection.sendDiagnostics({ uri, diagnostics: [] });
+});
+
 async function validateDocument(textDocument: TextDocument): Promise<void> {
   const code = textDocument.getText();
   const diagnostics = await CashscriptLinter.getDiagnostics(code, uriToFilePath(textDocument.uri));
@@ -49,7 +53,6 @@ async function validateDocument(textDocument: TextDocument): Promise<void> {
     uri: textDocument.uri,
     diagnostics,
   });
-  isValidatingFile = false;
 }
 
 // Register Connection
